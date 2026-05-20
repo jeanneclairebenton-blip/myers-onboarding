@@ -28,32 +28,73 @@ const DEFAULT_AGENT = {
 
 const STORAGE_KEY = 'myers-onboarding-v2';
 
-// ── Google Sheets sync ────────────────────────────────────────────────────
+// ── Google Sheets + Drive Sync ─────────────────────────────────────────────
 // Replace this URL with your deployed Apps Script web app URL.
 // Setup: Google Sheet → Extensions → Apps Script → paste the doPost function
 // → Deploy → New deployment → Web app → Anyone → Copy URL here.
 const SHEET_URL = '';
 
-function syncToSheet(taskId, agent, progress) {
-  if (!SHEET_URL) return; // skip if not configured
+// Milestone definitions — maps phase IDs to readable milestone names
+const MILESTONES = {
+  'profile':  'Profile Complete',
+  'paperwork':'Paperwork Signed',
+  'licensing':'License Transferred',
+  'tools':    'Tech Setup Complete',
+  'brand':    'Brand Kit Ready',
+  'closing':  'Launch Ready 🚀',
+};
+
+// Track which milestones we've already sent (so we don't double-send)
+const _sentMilestones = {};
+
+function syncMilestone(phaseId, agent, progress, extras) {
+  if (!SHEET_URL) return;
+  if (_sentMilestones[phaseId + '-' + (agent.fullName||'')]) return; // already sent
+  _sentMilestones[phaseId + '-' + (agent.fullName||'')] = true;
+
+  const payload = {
+    type: 'milestone',
+    milestone: MILESTONES[phaseId] || phaseId,
+    phaseId: phaseId,
+    fullName: agent.fullName || '',
+    first: agent.first || '',
+    last: agent.last || '',
+    email: agent.email || '',
+    phone: agent.phone || '',
+    title: agent.title || '',
+    license: agent.license || '',
+    progress: progress,
+    timestamp: new Date().toISOString(),
+  };
+
+  // Attach photo as base64 if available (for Drive upload)
+  if (extras?.photo) payload.photo = extras.photo;
+  // Attach welcome template image if available
+  if (extras?.welcomeTemplate) payload.welcomeTemplate = extras.welcomeTemplate;
+  if (extras?.welcomeTemplateName) payload.welcomeTemplateName = extras.welcomeTemplateName;
+
   try {
     fetch(SHEET_URL, {
       method: 'POST',
       mode: 'no-cors',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        fullName: agent.fullName || '',
-        email: agent.email || '',
-        phone: agent.phone || '',
-        title: agent.title || '',
-        license: agent.license || '',
-        step: taskId,
-        taskId: taskId,
-        progress: progress,
-        timestamp: new Date().toISOString(),
-      }),
+      body: JSON.stringify(payload),
     });
-  } catch (e) { console.warn('Sheet sync failed:', e); }
+  } catch (e) { console.warn('Milestone sync failed:', e); }
+}
+
+// Check if a milestone was just hit (all required tasks in a phase done)
+function checkMilestones(progress, agent) {
+  const PHASES = window.MYERS_DATA.PHASES;
+  PHASES.forEach(phase => {
+    const required = phase.tasks.filter(t => !t.optional);
+    const allDone = required.every(t => progress[t.id]);
+    if (allDone) {
+      const extras = {};
+      if (phase.id === 'profile' && agent.photo) extras.photo = agent.photo;
+      syncMilestone(phase.id, agent, progress, extras);
+    }
+  });
 }
 
 function loadState() {
@@ -102,9 +143,8 @@ function App() {
       const wasOn = !!s.progress[taskId];
       const next = { ...s.progress, [taskId]: !wasOn };
       if (!wasOn) {
-        // Just completed — confetti pulse + sync to sheet
         setConfetti(c => c + 1);
-        syncToSheet(taskId, s.agent, next);
+        checkMilestones(next, s.agent);
       }
       return { ...s, progress: next };
     });
@@ -115,7 +155,7 @@ function App() {
       if (s.progress[taskId]) return s;
       setConfetti(c => c + 1);
       const next = { ...s.progress, [taskId]: true };
-      syncToSheet(taskId, s.agent, next);
+      checkMilestones(next, s.agent);
       return { ...s, progress: next };
     });
   };
