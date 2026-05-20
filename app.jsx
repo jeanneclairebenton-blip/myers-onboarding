@@ -32,7 +32,7 @@ const STORAGE_KEY = 'myers-onboarding-v2';
 // Replace this URL with your deployed Apps Script web app URL.
 // Setup: Google Sheet → Extensions → Apps Script → paste the doPost function
 // → Deploy → New deployment → Web app → Anyone → Copy URL here.
-const SHEET_URL = '';
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbzDquRtva4ZHShdm8TDiNpbbnP5GEDQbQ8wmktlhtzstWhxDQuyWpGvwq3V7F3F6S0p/exec';
 
 // Milestone definitions — maps phase IDs to readable milestone names
 const MILESTONES = {
