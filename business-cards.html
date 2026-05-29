@@ -1,0 +1,927 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Myers Home Buyers — Business Card Builder</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Mulish:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  /* Avenir substitute: Mulish — geometric humanist, very close to Avenir metrics */
+  :root{
+    --gold:#F5B021;
+    --dark-gold:#D69B2D;
+    --black:#0A0A0A;
+    --ink:#1A1A1A;
+    --charcoal:#5A5A5A;
+    --gray:#9E9D9F;
+    --light-gray:#EFEFEF;
+    --paper:#FAFAF8;
+    --white:#FFFFFF;
+    --font:'Mulish', 'Avenir Next', 'Avenir', system-ui, sans-serif;
+
+    /* consistent spatial system — every card uses these */
+    --pad:36px;          /* card edge padding */
+    --gap-sm:6px;
+    --gap-md:12px;
+    --gap-lg:20px;
+    --gap-xl:28px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:#f4f4f3;font-family:var(--font);color:var(--ink);-webkit-font-smoothing:antialiased}
+  body{min-height:100vh}
+
+  /* ============================================ App shell ============================================ */
+  .app{display:grid;grid-template-columns:360px 1fr;min-height:100vh}
+  @media (max-width: 980px){ .app{grid-template-columns:1fr} }
+
+  .sidebar{
+    background:#fff;border-right:1px solid #ececea;padding:28px 26px 40px;
+    overflow-y:auto;max-height:100vh;position:sticky;top:0;
+  }
+  .brand-row{display:flex;align-items:center;gap:12px;margin-bottom:24px;padding-bottom:18px;border-bottom:1px solid #f1f1ef}
+  .brand-row img{height:32px;width:auto}
+  .brand-row .meta{font-size:13px;color:var(--ink);font-weight:700;line-height:1.2}
+  .brand-row .meta small{display:block;font-size:11px;color:var(--gray);font-weight:500;margin-top:2px}
+
+  h1.section{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--gray);font-weight:700;margin:26px 0 12px}
+  h1.section:first-of-type{margin-top:0}
+
+  .field{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+  .field label{font-size:11px;color:var(--charcoal);font-weight:600;letter-spacing:.02em}
+  .field input{
+    font:inherit;font-size:13px;padding:10px 12px;border:1px solid #e5e5e2;border-radius:8px;background:#fff;color:var(--ink);
+    transition:border-color .15s, box-shadow .15s;
+  }
+  .field input:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(245,176,33,.16)}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+  /* Layout picker — visual thumbnails, no labels overlap */
+  .layout-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+  .layout-grid button{
+    border:1.5px solid #ececea;background:#fff;border-radius:10px;padding:8px 6px 6px;cursor:pointer;
+    display:flex;flex-direction:column;align-items:center;gap:6px;transition:all .15s;
+  }
+  .layout-grid button:hover{border-color:var(--gray)}
+  .layout-grid button.active{border-color:var(--gold);box-shadow:0 0 0 3px rgba(245,176,33,.14)}
+  .layout-grid .preview{
+    width:100%;aspect-ratio:1.75/1;border-radius:5px;overflow:hidden;background:#fff;
+    border:1px solid #f0f0ee;position:relative;
+  }
+  .layout-grid .lbl{font-size:10px;color:var(--charcoal);font-weight:700;letter-spacing:.04em}
+
+  .theme-grid{display:flex;gap:8px}
+  .theme-grid button{
+    flex:1;padding:10px 8px;border-radius:8px;border:1.5px solid #ececea;background:#fff;cursor:pointer;
+    display:flex;flex-direction:column;align-items:center;gap:6px;transition:all .15s;
+  }
+  .theme-grid button:hover{border-color:var(--gray)}
+  .theme-grid button.active{border-color:var(--gold);box-shadow:0 0 0 3px rgba(245,176,33,.14)}
+  .theme-grid .sw{width:24px;height:24px;border-radius:6px;border:1px solid rgba(0,0,0,.06)}
+  .theme-grid .nm{font-size:10px;color:var(--charcoal);font-weight:700;letter-spacing:.04em}
+
+  .actions{display:flex;gap:8px;margin-top:26px;flex-direction:column}
+  .btn{
+    font:inherit;font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+    padding:13px 16px;border-radius:8px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;
+    transition:background .15s, color .15s, border-color .15s;
+  }
+  .btn.primary{background:var(--black);color:#fff}
+  .btn.primary:hover{background:var(--gold);color:#000}
+  .btn.ghost{background:#fff;border:1.5px solid #e5e5e2;color:var(--charcoal)}
+  .btn.ghost:hover{border-color:var(--charcoal);color:#000}
+
+  .footer-note{margin-top:22px;font-size:11px;color:var(--gray);line-height:1.6}
+  .footer-note b{color:var(--charcoal)}
+
+  /* ============================================ Preview stage ============================================ */
+  .stage{
+    padding:60px 48px;display:flex;flex-direction:column;align-items:center;gap:40px;
+    background:
+      radial-gradient(circle at 20% 0%, #fdfdfb 0%, #f1f1ef 60%, #ebebe8 100%);
+    min-height:100vh;
+  }
+  .stage-header{width:100%;max-width:1200px;display:flex;align-items:flex-end;justify-content:space-between;gap:16px}
+  .stage-header h2{margin:0;font-size:20px;font-weight:800;letter-spacing:-.01em;color:var(--ink)}
+  .stage-header .sub{font-size:12px;color:var(--charcoal);font-weight:500;margin-top:2px}
+  .stage-header .specs{font-size:11px;color:var(--gray);font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-variant-numeric:tabular-nums}
+
+  .cards-pair{display:flex;flex-wrap:wrap;gap:48px;justify-content:center;align-items:flex-start;transform-origin:top center}
+  .card-wrap{display:flex;flex-direction:column;align-items:center;gap:14px}
+  .card-label{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--gray);font-weight:700}
+
+  /* Card surface — standard US 3.5" x 2", rendered at 175dpi for crisp preview = 612.5 x 350 */
+  .card{
+    width:612px;height:350px;
+    background:#fff;border-radius:12px;
+    box-shadow:
+      0 1px 1px rgba(0,0,0,.03),
+      0 10px 30px -8px rgba(20,20,20,.15),
+      0 36px 70px -24px rgba(20,20,20,.20);
+    overflow:hidden;position:relative;
+    font-family:var(--font);color:var(--ink);
+  }
+
+  /* ============== Hex pattern (used in L3) ============== */
+  .hex-bg{
+    position:absolute;inset:0;pointer-events:none;
+    background-color:transparent;
+    /* honeycomb made from two offset SVG layers */
+    background-image:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='52' viewBox='0 0 60 52'><g fill='none' stroke='%23F5B021' stroke-width='1.1' opacity='0.22'><polygon points='30,2 56,15 56,37 30,50 4,37 4,15'/></g></svg>");
+    background-size:60px 52px;
+  }
+
+  /* ============================================================================
+     LAYOUT 1 · MINIMAL
+     Pure typography. Name top, contact bottom, logo top-right.
+     No dividers, no stripes, just whitespace.
+     ============================================================================ */
+  .L1, .L2, .L3, .L1B, .L2B, .L3B,
+  .L4, .L5, .L6, .L4B, .L5B, .L6B{ width:100%; height:100% }
+
+  .L1{
+    display:grid;grid-template-rows:auto 1fr auto;
+    padding:var(--pad);
+    background:#fff;
+    row-gap:var(--gap-lg);
+  }
+  .L1 .head{display:flex;align-items:flex-start;justify-content:space-between;gap:var(--gap-lg)}
+  .L1 .who{display:flex;flex-direction:column;gap:4px;min-width:0;flex:1}
+  .L1 .who .name{
+    font-size:28px;font-weight:700;letter-spacing:-.02em;line-height:1.1;color:var(--ink);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .L1 .who .title{
+    font-size:14px;color:var(--charcoal);font-weight:600;letter-spacing:.01em;line-height:1.3;
+  }
+  .L1 .head .logo{height:34px;width:auto;flex:none;margin-top:2px}
+  .L1 .mid{display:flex;align-items:center;gap:10px;align-self:end;margin-bottom:6px}
+  .L1 .dot{width:6px;height:6px;border-radius:50%;background:var(--gold)}
+  .L1 .tag{font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--charcoal);font-weight:700;white-space:nowrap}
+  .L1 .foot{display:grid;grid-template-columns:1fr 1fr;gap:10px 28px}
+  .L1 .foot .item{display:flex;flex-direction:column;gap:3px;font-size:14px;font-variant-numeric:tabular-nums}
+  .L1 .foot .item .k{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--charcoal);font-weight:700}
+  .L1 .foot .item .v{color:var(--ink);font-weight:500}
+
+  /* Back of L1 */
+  .L1B{background:var(--paper);display:flex;align-items:center;justify-content:center;padding:var(--pad);position:relative}
+  .L1B .stack{display:flex;flex-direction:column;align-items:center;gap:18px;text-align:center}
+  .L1B .stack img{height:80px;width:auto}
+  .L1B .stack .line{font-size:11px;letter-spacing:.32em;text-transform:uppercase;color:var(--gray);font-weight:700}
+
+  /* ============================================================================
+     LAYOUT 2 · CENTERED
+     Symmetric. Logo top, name + title center, contact below, gold dot accent.
+     ============================================================================ */
+  .L2{
+    display:grid;grid-template-rows:auto 1fr auto;
+    padding:var(--pad);background:#fff;text-align:center;
+  }
+  .L2 .head{display:flex;justify-content:center;align-items:center}
+  .L2 .head img{height:34px;width:auto}
+  .L2 .mid{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px}
+  .L2 .mid .name{font-size:30px;font-weight:700;letter-spacing:-.02em;line-height:1.05;color:var(--ink)}
+  .L2 .mid .dotrow{display:flex;align-items:center;gap:10px;margin-top:4px}
+  .L2 .mid .dotrow .dot{width:5px;height:5px;border-radius:50%;background:var(--gold)}
+  .L2 .mid .dotrow .title{font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--charcoal);font-weight:700}
+  .L2 .foot{display:flex;justify-content:center;align-items:center;gap:24px;flex-wrap:wrap}
+  .L2 .foot .item{font-size:13.5px;color:var(--ink);font-weight:500;letter-spacing:.01em;font-variant-numeric:tabular-nums}
+  .L2 .foot .sep{width:3px;height:3px;border-radius:50%;background:var(--gray)}
+
+  /* Back of L2 */
+  .L2B{background:var(--ink);display:flex;align-items:center;justify-content:center;padding:var(--pad);position:relative}
+  .L2B img{height:96px;width:auto}
+
+  /* ============================================================================
+     LAYOUT 3 · PATTERN
+     Hex honeycomb wash behind clean typography. Quiet but distinctive.
+     ============================================================================ */
+  .L3{
+    display:grid;grid-template-rows:auto 1fr auto;
+    padding:var(--pad);background:#fff;position:relative;overflow:hidden;
+  }
+  .L3 .hex-bg{ /* uniform pattern, no fade */ }
+  .L3 .head, .L3 .mid, .L3 .foot{position:relative;z-index:1}
+  .L3 .head{display:flex;align-items:center;justify-content:space-between;gap:var(--gap-lg)}
+  .L3 .head img.logo{height:36px;width:auto}
+  .L3 .head .web{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--charcoal);font-weight:700}
+  .L3{row-gap:var(--gap-md)}
+  .L3 .mid{display:flex;flex-direction:column;justify-content:center;gap:6px;align-self:center}
+  .L3 .mid .name{font-size:30px;font-weight:700;letter-spacing:-.02em;line-height:1.02;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .L3 .mid .title{font-size:14px;color:var(--charcoal);font-weight:600;letter-spacing:.01em}
+  .L3 .foot{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px 24px}
+  .L3 .foot .item{display:flex;flex-direction:column;gap:3px;font-size:13.5px;font-variant-numeric:tabular-nums}
+  .L3 .foot .item .k{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--charcoal);font-weight:700}
+  .L3 .foot .item .v{color:var(--ink);font-weight:500}
+
+  /* Back of L3: pattern reversed on paper */
+  .L3B{background:var(--paper);display:flex;align-items:center;justify-content:center;padding:var(--pad);position:relative;overflow:hidden}
+  .L3B .hex-bg{ /* uniform pattern, no fade */ }
+  .L3B .stack{display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center;position:relative;z-index:1}
+  .L3B .stack img{height:88px;width:auto}
+  .L3B .stack .line{font-size:11px;letter-spacing:.32em;text-transform:uppercase;color:var(--charcoal);font-weight:700}
+
+  /* ============================================================================
+     LAYOUT 4 · SPLIT
+     40/60 vertical split. Left tile is paper-toned with centered logo + tagline.
+     Right side is clean info, top-aligned.
+     ============================================================================ */
+  .L4{display:grid;grid-template-columns:40% 60%;background:#fff}
+  .L4 .panel{
+    background:var(--paper);display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:14px;padding:var(--pad) 24px;
+  }
+  .L4 .panel img{height:46px;width:auto;max-width:80%}
+  .L4 .panel .tag{font-size:10px;letter-spacing:.28em;text-transform:uppercase;color:var(--charcoal);font-weight:700;text-align:center}
+  .L4 .panel .dot{width:6px;height:6px;border-radius:50%;background:var(--gold)}
+  .L4 .info{padding:var(--pad);display:flex;flex-direction:column;justify-content:space-between;gap:var(--gap-md);min-width:0}
+  .L4 .info .who .name{font-size:24px;font-weight:700;letter-spacing:-.02em;line-height:1.1;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .L4 .info .who .title{font-size:13px;color:var(--charcoal);font-weight:600;letter-spacing:.01em;margin-top:4px}
+  .L4 .info .foot{display:flex;flex-direction:column;gap:7px}
+  .L4 .info .foot .item{display:flex;flex-direction:column;gap:1px;font-size:13px;font-variant-numeric:tabular-nums;min-width:0}
+  .L4 .info .foot .item .k{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--charcoal);font-weight:700}
+  .L4 .info .foot .item .v{color:var(--ink);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+  .L4B{background:var(--paper);display:flex;align-items:center;justify-content:center;padding:var(--pad)}
+  .L4B .stack{display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center}
+  .L4B .stack img{height:88px;width:auto}
+  .L4B .stack .line{font-size:11px;letter-spacing:.32em;text-transform:uppercase;color:var(--charcoal);font-weight:700}
+
+  /* ============================================================================
+     LAYOUT 5 · TILE (Pattern band)
+     Gold left band with white hex pattern over it. White info panel on the right.
+     ============================================================================ */
+  .L5{display:grid;grid-template-columns:32% 68%;background:#fff}
+  .L5 .band{background:var(--paper);position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;padding:24px;border-right:1px solid #ececea}
+  .L5 .band .hex{position:absolute;inset:0;pointer-events:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='52' viewBox='0 0 60 52'><g fill='none' stroke='%23F5B021' stroke-width='1.1' opacity='0.22'><polygon points='30,2 56,15 56,37 30,50 4,37 4,15'/></g></svg>");background-size:60px 52px}
+  .L5 .band img{position:relative;z-index:1;width:74%;max-width:120px;height:auto}
+  .L5 .info{padding:var(--pad);display:flex;flex-direction:column;justify-content:space-between;gap:var(--gap-md);min-width:0}
+  .L5 .info .who .name{font-size:26px;font-weight:700;letter-spacing:-.02em;line-height:1.1;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .L5 .info .who .title{font-size:13px;color:var(--charcoal);font-weight:600;letter-spacing:.01em;margin-top:4px}
+  .L5 .info .foot{display:grid;grid-template-columns:1fr 1fr;gap:8px 22px}
+  .L5 .info .foot .item{display:flex;flex-direction:column;gap:2px;font-size:13px;font-variant-numeric:tabular-nums;min-width:0}
+  .L5 .info .foot .item .k{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--charcoal);font-weight:700}
+  .L5 .info .foot .item .v{color:var(--ink);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+  .L5B{background:var(--paper);display:flex;align-items:center;justify-content:center;padding:var(--pad);position:relative;overflow:hidden}
+  .L5B .hex{position:absolute;inset:0;pointer-events:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='52' viewBox='0 0 60 52'><g fill='none' stroke='%23F5B021' stroke-width='1.1' opacity='0.22'><polygon points='30,2 56,15 56,37 30,50 4,37 4,15'/></g></svg>");background-size:60px 52px}
+  .L5B .stack{display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center;position:relative;z-index:1}
+  .L5B .stack img{height:92px;width:auto}
+  .L5B .stack .line{font-size:11px;letter-spacing:.32em;text-transform:uppercase;color:var(--charcoal);font-weight:700}
+
+  /* ============================================================================
+     LAYOUT 6 · FRAMED
+     Thin hairline border inside the card, small gold badge top-left.
+     Name and title centered. Contact row pinned to bottom.
+     ============================================================================ */
+  .L6{position:relative;display:grid;grid-template-rows:auto 1fr auto;background:#fff;padding:22px}
+  .L6 .frame{
+    position:absolute;inset:14px;border:1px solid #e8e6df;border-radius:6px;pointer-events:none;
+  }
+  .L6 .head, .L6 .mid, .L6 .foot{position:relative;z-index:1;padding:14px 22px}
+  .L6 .head{display:flex;align-items:center;justify-content:space-between;gap:var(--gap-lg)}
+  .L6 .badge{display:flex;align-items:center;gap:8px}
+  .L6 .badge .dot{width:6px;height:6px;border-radius:50%;background:var(--gold)}
+  .L6 .badge .name-co{font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--ink);font-weight:800;white-space:nowrap}
+  .L6 .head .web{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--charcoal);font-weight:700}
+  .L6 .mid{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:6px}
+  .L6 .mid img{height:30px;width:auto;margin-bottom:6px}
+  .L6 .mid .name{font-size:28px;font-weight:700;letter-spacing:-.02em;line-height:1.05;color:var(--ink)}
+  .L6 .mid .title{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--charcoal);font-weight:700;white-space:nowrap}
+  .L6 .foot{display:flex;align-items:center;justify-content:space-between;gap:18px}
+  .L6 .foot .item{font-size:12.5px;color:var(--ink);font-weight:500;font-variant-numeric:tabular-nums;letter-spacing:.01em}
+  .L6 .foot .sep{width:3px;height:3px;border-radius:50%;background:var(--gray);flex:none}
+
+  .L6B{background:#fff;display:flex;align-items:center;justify-content:center;padding:22px;position:relative}
+  .L6B .frame{position:absolute;inset:14px;border:1px solid #e8e6df;border-radius:6px;pointer-events:none}
+  .L6B .stack{display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center;position:relative;z-index:1}
+  .L6B .stack img{height:80px;width:auto}
+  .L6B .stack .line{font-size:10px;letter-spacing:.34em;text-transform:uppercase;color:var(--charcoal);font-weight:700}
+
+  /* ============================================================================
+     DARK theme: applies to any layout — swaps front bg to ink, text to white
+     ============================================================================ */
+  .theme-dark .L1, .theme-dark .L2, .theme-dark .L3,
+  .theme-dark .L4 .info, .theme-dark .L5, .theme-dark .L6{background:var(--ink);color:#fff}
+  .theme-dark .L4{background:var(--ink)}
+  .theme-dark .L4 .panel{background:#1d1d1c}
+  .theme-dark .L4 .panel .tag{color:#cfcfcb}
+  .theme-dark .L4 .info .who .name{color:#fff}
+  .theme-dark .L4 .info .who .title{color:#cfcfcb}
+  .theme-dark .L4 .info .foot .item .v{color:#fff}
+  .theme-dark .L4 .info .foot .item .k{color:#a0a09c}
+  .theme-dark .L4 .panel img{content:url("assets/logo-white.png")}
+
+  .theme-dark .L5 .band{background:#141413;border-right-color:#3a3a38}
+  .theme-dark .L5 .info{background:var(--ink)}
+  .theme-dark .L5 .info .who .name{color:#fff}
+  .theme-dark .L5 .info .who .title{color:#cfcfcb}
+  .theme-dark .L5 .info .foot .item .v{color:#fff}
+  .theme-dark .L5 .info .foot .item .k{color:#a0a09c}
+
+  .theme-dark .L6 .mid .name{color:#fff}
+  .theme-dark .L6 .mid .title, .theme-dark .L6 .head .web{color:#cfcfcb}
+  .theme-dark .L6 .foot .item{color:#fff}
+  .theme-dark .L6 .mid img{content:url("assets/logo-white.png")}
+  .theme-dark .L6 .frame{border-color:#3a3a38}
+  .theme-dark .L6 .badge .name-co{color:#fff}
+  .theme-dark .L6 .foot .sep{background:#5a5a58}
+
+  .theme-dark .L1, .theme-dark .L2, .theme-dark .L3{background:var(--ink);color:#fff}
+  .theme-dark .L1 .who .name,
+  .theme-dark .L2 .mid .name,
+  .theme-dark .L3 .mid .name{color:#fff}
+  .theme-dark .L1 .who .title,
+  .theme-dark .L2 .mid .dotrow .title,
+  .theme-dark .L3 .mid .title{color:#cfcfcb}
+  .theme-dark .L1 .foot .item .v,
+  .theme-dark .L3 .foot .item .v{color:#fff}
+  .theme-dark .L1 .foot .item .k,
+  .theme-dark .L3 .foot .item .k{color:#7a7a78}
+  .theme-dark .L1 .tag,
+  .theme-dark .L3 .head .web{color:#cfcfcb}
+  .theme-dark .L2 .foot .item{color:#cfcfcb}
+  .theme-dark .L2 .foot .sep{background:#5a5a58}
+  /* swap logo to negative on dark */
+  .theme-dark .L1 .head .logo,
+  .theme-dark .L2 .head img,
+  .theme-dark .L3 .head .logo{content:url("assets/logo-white.png")}
+  .theme-dark .L3 .hex-bg{
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='52' viewBox='0 0 60 52'><g fill='none' stroke='%23F5B021' stroke-width='1.1' opacity='0.32'><polygon points='30,2 56,15 56,37 30,50 4,37 4,15'/></g></svg>");
+  }
+
+  /* ============================================================================
+     Print sheet
+     ============================================================================ */
+  @media print{
+    body{background:#fff}
+    .sidebar, .stage-header, .actions{display:none !important}
+    .stage{padding:0;background:#fff;min-height:auto}
+    .cards-pair{display:none}
+    .print-sheet{display:block !important}
+  }
+  .print-sheet{display:none}
+  @page{size:letter;margin:.4in}
+  .ps-page{
+    width:8.5in;height:11in;padding:.4in;
+    display:grid;grid-template-columns:repeat(2, 3.5in);grid-template-rows:repeat(4, 2in);
+    gap:.1in;page-break-after:always;background:#fff;justify-content:center;align-content:start;
+  }
+  .ps-card{
+    width:3.5in;height:2in;overflow:hidden;border-radius:0;
+    border:.5pt dashed #d0d0d0;
+  }
+  @media print{ .ps-card{border:0} }
+  .ps-card .L1, .ps-card .L2, .ps-card .L3, .ps-card .L1B, .ps-card .L2B, .ps-card .L3B{
+    width:3.5in;height:2in;padding:.22in;
+  }
+  .ps-card .L1 .who .name, .ps-card .L2 .mid .name, .ps-card .L3 .mid .name{font-size:14pt}
+  .ps-card .L1 .who .title, .ps-card .L3 .mid .title{font-size:7pt}
+  .ps-card .L1 .foot .item, .ps-card .L3 .foot .item{font-size:7pt}
+  .ps-card .L1 .foot .item .k, .ps-card .L3 .foot .item .k{font-size:5.5pt}
+  .ps-card .L2 .foot .item{font-size:7pt}
+  .ps-card .L1 .head .logo, .ps-card .L2 .head img, .ps-card .L3 .head .logo{height:18pt}
+  .ps-card .L1B .stack img, .ps-card .L3B .stack img{height:38pt}
+  .ps-card .L2B img{height:44pt}
+
+  /* ---------- Editable text on cards ---------- */
+  .editable{
+    cursor:text;
+    outline:none;
+    border-radius:3px;
+    transition:background-color .12s, box-shadow .12s;
+    /* keep inline behavior so layouts don't break */
+  }
+  .editable:hover{ background:rgba(245,176,33,.10); box-shadow:0 0 0 2px rgba(245,176,33,.10) }
+  .editable.focused{ background:rgba(245,176,33,.16); box-shadow:0 0 0 2px rgba(245,176,33,.35) }
+  /* dark theme — softer focus halo since the page is dark */
+  .theme-dark .editable:hover{ background:rgba(245,176,33,.14) }
+  .theme-dark .editable.focused{ background:rgba(245,176,33,.22); box-shadow:0 0 0 2px rgba(245,176,33,.5) }
+
+  .card-label .hint{ color:var(--charcoal); font-weight:500; letter-spacing:0; text-transform:none; font-size:11px; margin-left:2px }
+
+  /* Print sheet must NEVER show editing affordances */
+  .ps-card .editable, @media print { .editable{ background:transparent !important; box-shadow:none !important } }
+  @media print {
+    .editable{ background:transparent !important; box-shadow:none !important }
+  }
+  /* Strip editable styles from print sheet cards (they're rendered from same template) */
+  .print-sheet .editable{ background:transparent !important; box-shadow:none !important }
+
+  /* small icon sizing */
+  .ico{width:14px;height:14px;display:inline-block;vertical-align:middle}
+
+  /* Responsive — scale whole pair proportionally so type + padding ratios stay correct */
+  @media (max-width: 1500px){ .cards-pair{transform:scale(.92)} }
+  @media (max-width: 1380px){ .cards-pair{transform:scale(.82)} }
+  @media (max-width: 1200px){ .cards-pair{transform:scale(.72)} }
+  @media (max-width: 1100px){
+    .cards-pair{flex-direction:column;align-items:center;transform:scale(.85)}
+  }
+  @media (max-width: 820px){
+    .stage{padding:24px 14px}
+    .cards-pair{transform:scale(.68);margin-bottom:-180px}
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ============================================ SIDEBAR ============================================ -->
+  <aside class="sidebar">
+    <div class="brand-row">
+      <img src="assets/logo-icon.png" alt="MHB" />
+      <div class="meta">
+        Business Card Builder
+        <small>Myers Home Buyers</small>
+      </div>
+    </div>
+
+    <h1 class="section">Agent</h1>
+    <div class="field">
+      <label>Full name</label>
+      <input id="f-name" type="text" value="Jordan Myers" />
+    </div>
+    <div class="field">
+      <label>Title</label>
+      <input id="f-title" type="text" value="Acquisitions Manager" />
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label>Mobile</label>
+        <input id="f-phone" type="text" value="214.555.0142" />
+      </div>
+      <div class="field">
+        <label>Office</label>
+        <input id="f-office" type="text" value="214.555.0100" />
+      </div>
+    </div>
+    <div class="field">
+      <label>Email</label>
+      <input id="f-email" type="text" value="jordan@myershomebuyers.com" />
+    </div>
+    <div class="field">
+      <label>Website</label>
+      <input id="f-web" type="text" value="myershomebuyers.com" />
+    </div>
+    <div class="field">
+      <label>Address</label>
+      <input id="f-addr" type="text" value="2200 Ross Ave, Suite 4800E" />
+    </div>
+    <div class="field">
+      <label>City, State ZIP</label>
+      <input id="f-city" type="text" value="Dallas, TX 75201" />
+    </div>
+
+    <h1 class="section">Layout</h1>
+    <div class="layout-grid" id="layout-grid">
+      <button data-layout="1" class="active" title="Minimal">
+        <span class="preview">
+          <span style="position:absolute;left:6px;top:5px;width:24px;height:3px;background:#222;border-radius:1px"></span>
+          <span style="position:absolute;left:6px;top:11px;width:14px;height:2px;background:#bbb;border-radius:1px"></span>
+          <span style="position:absolute;right:6px;top:5px;width:14px;height:7px;background:#F5B021;border-radius:1px"></span>
+          <span style="position:absolute;left:6px;bottom:5px;width:30px;height:2px;background:#ccc;border-radius:1px"></span>
+        </span>
+        <span class="lbl">Minimal</span>
+      </button>
+      <button data-layout="2" title="Centered">
+        <span class="preview">
+          <span style="position:absolute;left:50%;top:5px;width:18px;height:5px;background:#F5B021;border-radius:1px;transform:translateX(-50%)"></span>
+          <span style="position:absolute;left:50%;top:14px;width:24px;height:3px;background:#222;border-radius:1px;transform:translateX(-50%)"></span>
+          <span style="position:absolute;left:50%;bottom:5px;width:30px;height:2px;background:#ccc;border-radius:1px;transform:translateX(-50%)"></span>
+        </span>
+        <span class="lbl">Centered</span>
+      </button>
+      <button data-layout="3" title="Pattern">
+        <span class="preview" style="background-image:url(&quot;data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='12' viewBox='0 0 14 12'><polygon points='7,1 13,3.5 13,8.5 7,11 1,8.5 1,3.5' fill='none' stroke='%23F5B021' stroke-width='0.6' opacity='0.5'/></svg>&quot;);background-size:14px 12px">
+          <span style="position:absolute;left:6px;top:6px;width:22px;height:3px;background:#222;border-radius:1px"></span>
+          <span style="position:absolute;left:6px;bottom:5px;width:30px;height:2px;background:#999;border-radius:1px"></span>
+        </span>
+        <span class="lbl">Pattern</span>
+      </button>
+      <button data-layout="4" title="Split">
+        <span class="preview">
+          <span style="position:absolute;left:0;top:0;bottom:0;width:38%;background:#FAFAF8;border-right:1px solid #efefed"></span>
+          <span style="position:absolute;left:11%;top:50%;width:14px;height:5px;background:#F5B021;border-radius:1px;transform:translate(-50%,-50%)"></span>
+          <span style="position:absolute;left:46%;top:5px;width:18px;height:3px;background:#222;border-radius:1px"></span>
+          <span style="position:absolute;left:46%;bottom:5px;width:26px;height:2px;background:#bbb;border-radius:1px"></span>
+        </span>
+        <span class="lbl">Split</span>
+      </button>
+      <button data-layout="5" title="Tile">
+        <span class="preview">
+          <span style="position:absolute;left:0;top:0;bottom:0;width:32%;background:#FAFAF8;background-image:url(&quot;data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='9' viewBox='0 0 10 9'><polygon points='5,1 9,2.5 9,6.5 5,8 1,6.5 1,2.5' fill='none' stroke='%23F5B021' stroke-width='0.6' opacity='0.5'/></svg>&quot;);background-size:10px 9px;border-right:1px solid #efefed"></span>
+          <span style="position:absolute;left:38%;top:6px;width:22px;height:3px;background:#222;border-radius:1px"></span>
+          <span style="position:absolute;left:38%;bottom:5px;width:26px;height:2px;background:#bbb;border-radius:1px"></span>
+        </span>
+        <span class="lbl">Tile</span>
+      </button>
+      <button data-layout="6" title="Framed">
+        <span class="preview">
+          <span style="position:absolute;inset:5px;border:1px solid #d9d7cf;border-radius:3px"></span>
+          <span style="position:absolute;left:50%;top:48%;width:22px;height:3px;background:#222;border-radius:1px;transform:translate(-50%,-50%)"></span>
+          <span style="position:absolute;left:50%;top:62%;width:14px;height:2px;background:#F5B021;border-radius:1px;transform:translate(-50%,-50%)"></span>
+        </span>
+        <span class="lbl">Framed</span>
+      </button>
+    </div>
+
+    <h1 class="section">Theme</h1>
+    <div class="theme-grid" id="theme-grid">
+      <button data-theme="light" class="active">
+        <span class="sw" style="background:#fff;border-color:#e5e5e2"></span>
+        <span class="nm">Light</span>
+      </button>
+      <button data-theme="cream">
+        <span class="sw" style="background:var(--cream-soft)"></span>
+        <span class="nm">Cream</span>
+      </button>
+      <button data-theme="gold">
+        <span class="sw" style="background:var(--gold)"></span>
+        <span class="nm">Gold</span>
+      </button>
+      <button data-theme="dark">
+        <span class="sw" style="background:#0e0e0e"></span>
+        <span class="nm">Dark</span>
+      </button>
+    </div>
+
+    <div class="actions">
+      <button class="btn primary" id="btn-print">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v8H6z"/></svg>
+        Print &amp; PDF
+      </button>
+      <button class="btn ghost" id="btn-vcard">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8v13H3V8M1 3h22v5H1zM10 12h4"/></svg>
+        Download vCard
+      </button>
+    </div>
+
+    <p class="footer-note">
+      Standard US size <b>3.5″ × 2″</b>. Print sheet places 8 cards per page — fronts on page 1, backs on page 2 for duplex.
+    </p>
+  </aside>
+
+  <!-- ============================================ STAGE ============================================ -->
+  <main class="stage">
+
+    <div class="stage-header">
+      <div>
+        <h2>Live preview</h2>
+        <div class="sub">Type on the left. Cards update instantly.</div>
+      </div>
+      <div class="specs">3.5″ × 2″ · CMYK ready</div>
+    </div>
+
+    <div class="cards-pair" id="pair"></div>
+
+    <div class="print-sheet" id="print-sheet"></div>
+  </main>
+</div>
+
+<script>
+/* ---------------- State ---------------- */
+const state = {
+  name:'Jordan Myers',
+  title:'Acquisitions Manager',
+  phone:'214.555.0142',
+  office:'214.555.0100',
+  email:'jordan@myershomebuyers.com',
+  web:'myershomebuyers.com',
+  addr:'2200 Ross Ave, Suite 4800E',
+  city:'Dallas, TX 75201',
+  layout:1,
+  theme:'light'
+};
+
+function esc(s){return (s||'').replace(/[<>&]/g,m=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[m]))}
+
+/* edit() wraps a dynamic value so it can be clicked + typed into directly.
+   Adds data-field so we know which state key to update. */
+function edit(field, opts){
+  opts = opts || {};
+  const v = state[field] || '';
+  const ph = opts.placeholder ? ` data-placeholder="${esc(opts.placeholder)}"` : '';
+  return `<span class="editable" data-field="${field}"${ph}>${esc(v)}</span>`;
+}
+
+/* Load saved edits, then override with onboarding agent data if available */
+try{
+  const saved = JSON.parse(localStorage.getItem('mhb-card') || '{}');
+  Object.assign(state, saved);
+}catch(e){}
+
+// Auto-fill from URL params (from iframe injection) or local storage
+try{
+  const params = new URLSearchParams(window.location.search);
+  if(params.get('name')) state.name = params.get('name');
+  if(params.get('title')) state.title = params.get('title');
+  if(params.get('phone')) state.phone = params.get('phone');
+  if(params.get('email')) state.email = params.get('email');
+  
+  // Fallback to onboarding storage
+  const ob = JSON.parse(localStorage.getItem('myers-onboarding-v2') || '{}');
+  const a = ob.agent || {};
+  if(!params.get('name') && a.fullName) state.name = a.fullName;
+  if(!params.get('title') && a.title) state.title = a.title;
+  if(!params.get('phone') && a.phone) state.phone = a.phone;
+  if(!params.get('email') && a.email) state.email = a.email;
+}catch(e){}
+
+/* ---------------- Card markup ---------------- */
+function frontHTML(layout){
+  const s = state;
+  if(layout===1){
+    return `
+    <div class="L1">
+      <div class="head">
+        <div class="who">
+          <div class="name">${edit('name')}</div>
+          <div class="title">${edit('title')}</div>
+        </div>
+        <img class="logo" src="assets/logo-full.png" alt="Myers Home Buyers"/>
+      </div>
+      <div class="mid">
+        <span class="dot"></span>
+        <span class="tag">Myers Home Buyers</span>
+      </div>
+      <div class="foot">
+        <div class="item"><span class="k">Mobile</span><span class="v">${edit('phone')}</span></div>
+        <div class="item"><span class="k">Email</span><span class="v">${edit('email')}</span></div>
+        <div class="item"><span class="k">Office</span><span class="v">${edit('office')}</span></div>
+        <div class="item"><span class="k">Web</span><span class="v">${edit('web')}</span></div>
+      </div>
+    </div>`;
+  }
+  if(layout===2){
+    return `
+    <div class="L2">
+      <div class="head"><img src="assets/logo-full.png" alt="Myers Home Buyers"/></div>
+      <div class="mid">
+        <div class="name">${edit('name')}</div>
+        <div class="dotrow">
+          <span class="dot"></span>
+          <span class="title">${edit('title')}</span>
+          <span class="dot"></span>
+        </div>
+      </div>
+      <div class="foot">
+        <span class="item">${edit('phone')}</span>
+        <span class="sep"></span>
+        <span class="item">${edit('email')}</span>
+        <span class="sep"></span>
+        <span class="item">${edit('web')}</span>
+      </div>
+    </div>`;
+  }
+  // L3 — pattern
+  if(layout===3){
+  return `
+  <div class="L3">
+    <div class="hex-bg"></div>
+    <div class="head">
+      <img class="logo" src="assets/logo-full.png" alt="Myers Home Buyers"/>
+      <span class="web">${edit('web')}</span>
+    </div>
+    <div class="mid">
+      <div class="name">${edit('name')}</div>
+      <div class="title">${edit('title')}</div>
+    </div>
+    <div class="foot">
+      <div class="item"><span class="k">Mobile</span><span class="v">${edit('phone')}</span></div>
+      <div class="item"><span class="k">Email</span><span class="v">${edit('email')}</span></div>
+      <div class="item"><span class="k">Office</span><span class="v">${edit('city')}</span></div>
+    </div>
+  </div>`;
+  }
+  // L4 — split panel
+  if(layout===4){
+    const initials = (s.name||'').split(/\s+/).map(p=>p[0]||'').slice(0,2).join('').toUpperCase();
+    return `
+    <div class="L4">
+      <div class="panel">
+        <img src="assets/logo-full.png" alt="Myers Home Buyers"/>
+        <span class="dot"></span>
+        <div class="tag">We Buy Houses<br/>Any Condition</div>
+      </div>
+      <div class="info">
+        <div class="who">
+          <div class="name">${edit('name')}</div>
+          <div class="title">${edit('title')}</div>
+        </div>
+        <div class="foot">
+          <div class="item"><span class="k">Mobile</span><span class="v">${edit('phone')}</span></div>
+          <div class="item"><span class="k">Email</span><span class="v">${edit('email')}</span></div>
+          <div class="item"><span class="k">Web</span><span class="v">${edit('web')}</span></div>
+        </div>
+      </div>
+    </div>`;
+  }
+  // L5 — Tile (pattern band)
+  if(layout===5){
+    return `
+    <div class="L5">
+      <div class="band">
+        <div class="hex"></div>
+        <img src="assets/logo-icon.png" alt="MHB"/>
+      </div>
+      <div class="info">
+        <div class="who">
+          <div class="name">${edit('name')}</div>
+          <div class="title">${edit('title')}</div>
+        </div>
+        <div class="foot">
+          <div class="item"><span class="k">Mobile</span><span class="v">${edit('phone')}</span></div>
+          <div class="item"><span class="k">Office</span><span class="v">${edit('office')}</span></div>
+          <div class="item"><span class="k">Email</span><span class="v">${edit('email')}</span></div>
+          <div class="item"><span class="k">Web</span><span class="v">${edit('web')}</span></div>
+        </div>
+      </div>
+    </div>`;
+  }
+  // L6 — framed
+  return `
+  <div class="L6">
+    <div class="frame"></div>
+    <div class="head">
+      <div class="badge"><span class="dot"></span><span class="name-co">Myers Home Buyers</span></div>
+      <span class="web">${edit('web')}</span>
+    </div>
+    <div class="mid">
+      <img src="assets/logo-icon.png" alt="MHB"/>
+      <div class="name">${edit('name')}</div>
+      <div class="title">${edit('title')}</div>
+    </div>
+    <div class="foot">
+      <span class="item">${edit('phone')}</span>
+      <span class="sep"></span>
+      <span class="item">${edit('email')}</span>
+      <span class="sep"></span>
+      <span class="item">${edit('city')}</span>
+    </div>
+  </div>`;
+}
+
+function backHTML(layout){
+  const s = state;
+  if(layout===1){
+    return `<div class="L1B"><div class="stack">
+      <img src="assets/logo-full.png" alt="Myers Home Buyers"/>
+      <div class="line">${esc(s.web)}</div>
+    </div></div>`;
+  }
+  if(layout===2){
+    return `<div class="L2B"><img src="assets/logo-white.png" alt="Myers Home Buyers"/></div>`;
+  }
+  if(layout===3){
+    return `<div class="L3B">
+      <div class="hex-bg"></div>
+      <div class="stack">
+        <img src="assets/logo-full.png" alt="Myers Home Buyers"/>
+        <div class="line">${esc(s.addr)} · ${esc(s.city)}</div>
+      </div>
+    </div>`;
+  }
+  if(layout===4){
+    return `<div class="L4B"><div class="stack">
+      <img src="assets/logo-full.png" alt="Myers Home Buyers"/>
+      <div class="line">${esc(s.web)}</div>
+    </div></div>`;
+  }
+  if(layout===5){
+    return `<div class="L5B">
+      <div class="hex"></div>
+      <div class="stack">
+        <img src="assets/logo-full.png" alt="Myers Home Buyers"/>
+        <div class="line">${esc(s.web)}</div>
+      </div>
+    </div>`;
+  }
+  // L6 back
+  return `<div class="L6B">
+    <div class="frame"></div>
+    <div class="stack">
+      <img src="assets/logo-full.png" alt="Myers Home Buyers"/>
+      <div class="line">${esc(s.web)}</div>
+    </div>
+  </div>`;
+}
+
+/* ---------------- Render ---------------- */
+function render(){
+  const pair = document.getElementById('pair');
+  const themeCls = `theme-${state.theme}`;
+  pair.innerHTML = `
+    <div class="card-wrap">
+      <div class="card ${themeCls}">${frontHTML(state.layout)}</div>
+      <div class="card-label">Front · <span class="hint">click any text to edit</span></div>
+    </div>
+    <div class="card-wrap">
+      <div class="card">${backHTML(state.layout)}</div>
+      <div class="card-label">Back</div>
+    </div>
+  `;
+  // Wire up inline editing: only on the live preview cards, not the print sheet
+  pair.querySelectorAll('.editable').forEach(el=>{
+    el.setAttribute('contenteditable','plaintext-only');
+    el.setAttribute('spellcheck','false');
+    el.addEventListener('focus', ()=> el.classList.add('focused'));
+    el.addEventListener('blur',  ()=> el.classList.remove('focused'));
+    el.addEventListener('input', ()=>{
+      const k = el.dataset.field;
+      state[k] = el.textContent;
+      // sync the sidebar input
+      const inp = document.getElementById(fieldMap[k]);
+      if(inp && inp.value !== state[k]) inp.value = state[k];
+      // update other instances on the card (e.g. name appears twice in some layouts)
+      pair.querySelectorAll(`.editable[data-field="${k}"]`).forEach(other=>{
+        if(other !== el && other.textContent !== state[k]) other.textContent = state[k];
+      });
+      // rebuild print sheet only (not preview — keeps cursor)
+      buildPrintSheet();
+      persist();
+    });
+    el.addEventListener('keydown', e=>{
+      if(e.key === 'Enter'){ e.preventDefault(); el.blur(); }
+    });
+  });
+  buildPrintSheet();
+}
+
+function persist(){
+  try{ localStorage.setItem('mhb-card', JSON.stringify(state)); }catch(e){}
+}
+
+function buildPrintSheet(){
+  const sheet = document.getElementById('print-sheet');
+  const themeCls = `theme-${state.theme}`;
+  let f='', b='';
+  for(let i=0;i<8;i++){
+    f += `<div class="ps-card ${themeCls}">${frontHTML(state.layout)}</div>`;
+    b += `<div class="ps-card">${backHTML(state.layout)}</div>`;
+  }
+  sheet.innerHTML = `<section class="ps-page">${f}</section><section class="ps-page">${b}</section>`;
+}
+
+/* ---------------- Wire up form ---------------- */
+const fieldMap = {name:'f-name',title:'f-title',phone:'f-phone',office:'f-office',email:'f-email',web:'f-web',addr:'f-addr',city:'f-city'};
+
+/* sync form inputs with any loaded state */
+Object.entries(fieldMap).forEach(([k,id])=>{
+  const el=document.getElementById(id);
+  if(el && state[k] !== undefined) el.value = state[k];
+  el.addEventListener('input', e=>{ state[k]=e.target.value; persist(); render(); });
+});
+
+document.querySelectorAll('#layout-grid button').forEach(b=>{
+  b.addEventListener('click',()=>{
+    document.querySelectorAll('#layout-grid button').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    state.layout=+b.dataset.layout;
+    render();
+  });
+});
+document.querySelectorAll('#theme-grid button').forEach(b=>{
+  b.addEventListener('click',()=>{
+    document.querySelectorAll('#theme-grid button').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    state.theme=b.dataset.theme;
+    render();
+  });
+});
+
+document.getElementById('btn-print').addEventListener('click',()=>window.print());
+
+document.getElementById('btn-vcard').addEventListener('click',()=>{
+  const s=state;
+  const parts=s.name.trim().split(/\s+/);
+  const last=parts.slice(-1).join(' ');
+  const first=parts.slice(0,-1).join(' ');
+  const v=[
+    'BEGIN:VCARD','VERSION:3.0',
+    `FN:${s.name}`,
+    `N:${last};${first};;;`,
+    `ORG:Myers Home Buyers`,
+    `TITLE:${s.title}`,
+    `TEL;TYPE=cell:${s.phone}`,
+    `TEL;TYPE=work:${s.office}`,
+    `EMAIL:${s.email}`,
+    `URL:https://${s.web}`,
+    `ADR;TYPE=work:;;${s.addr};${s.city};;;`,
+    'END:VCARD'
+  ].join('\n');
+  const blob=new Blob([v],{type:'text/vcard'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`${s.name.replace(/\s+/g,'_')}.vcf`;
+  a.click();
+});
+
+render();
+</script>
+
+</body>
+</html>

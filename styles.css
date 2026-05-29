@@ -529,6 +529,28 @@ input, select, textarea { font-family: var(--sans); }
   color: var(--ink);
   border-color: #3A3834;
 }
+/* Dark mode: checked task-box text contrast */
+[data-style="dark"] .task-box {
+  color: #F0ECE2;
+}
+[data-style="dark"] .task-box.checked {
+  color: #1A1815 !important;
+}
+[data-style="dark"] .task-box:not(.checked) div[style*="line-through"] {
+  color: #e0e0e0 !important;
+  text-decoration-color: rgba(255,255,255,0.4) !important;
+}
+[data-style="dark"] .task-box.checked div[style*="line-through"] {
+  color: rgba(26,24,21,0.8) !important;
+  text-decoration-color: rgba(26,24,21,0.4) !important;
+}
+[data-style="dark"] .task-box.checked .task-desc {
+  color: rgba(26,24,21,0.7) !important;
+}
+[data-style="dark"] .task-box.checked .task-opt {
+  color: rgba(26,24,21,0.6) !important;
+  background: rgba(26,24,21,0.06) !important;
+}
 
 /* ── GLASS — Advanced Glassmorphism (Trend #2) ─────────────────────────── */
 [data-style="glass"] {

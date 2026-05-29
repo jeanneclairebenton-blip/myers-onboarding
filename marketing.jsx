@@ -322,119 +322,40 @@ function SignatureRender({ draft, style }) {
   );
 }
 
-// ── Business Cards ────────────────────────────────────────────────────────
+// ── Business Cards — embeds the full 6-layout card builder ────────────────
 function BusinessCardsBuilder({ agent, onClose }) {
-  const [activeId, setActiveId] = useState(BUSINESS_CARDS[0].id);
-  const [side, setSide] = useState('front');
-  const [ordered, setOrdered] = useState(false);
-  const active = BUSINESS_CARDS.find(c => c.id === activeId);
-
-  const handleOrder = () => {
-    setOrdered(true);
-    setTimeout(() => setOrdered(false), 2400);
+  const markDone = () => {
+    try {
+      const raw = localStorage.getItem('myers-onboarding-v2');
+      const ob = raw ? JSON.parse(raw) : { progress: {}, agent: {} };
+      ob.progress = { ...(ob.progress || {}), 'cards': true };
+      // Store which card style was selected
+      ob.agent = { ...(ob.agent || {}), cardStyle: 'custom' };
+      localStorage.setItem('myers-onboarding-v2', JSON.stringify(ob));
+      window.postMessage({ type: 'myers-task-done', taskId: 'cards' }, '*');
+    } catch (e) {}
+    onClose();
   };
-
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', minHeight: 540 }}>
-      <div style={{ background: 'linear-gradient(135deg, #2a2520, #1a1815)', color: 'var(--cream)', padding: 48, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-        <div className="kicker" style={{ color: 'var(--cream-deep)', marginBottom: 16 }}>3.5″ × 2″ · double-sided</div>
-        <div style={{ perspective: 1200, marginBottom: 24 }}>
-          <BusinessCardPreview design={active} agent={agent} side={side} />
+    <div style={{ padding: 0, minHeight: 540 }}>
+      <div style={{ padding: '24px 28px 16px', borderBottom: '1px solid var(--hairline)', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 }}>
+        <div>
+          <div className="kicker" style={{ marginBottom: 6 }}>Marketing · Business Cards</div>
+          <h2 style={{ fontFamily: 'var(--serif)', fontSize: 24, fontWeight: 400 }}>Design your cards.</h2>
+          <p style={{ fontSize: 13, color: 'var(--muted)', marginTop: 6, maxWidth: 540 }}>
+            Six premium layouts with your details auto-filled. Pick a layout, switch themes, click any text to edit, then print or download.
+          </p>
         </div>
-        <div className="row" style={{ gap: 6 }}>
-          <button onClick={() => setSide('front')} className={`btn sm ${side === 'front' ? 'cream' : 'ghost'}`} style={{ color: side === 'front' ? 'var(--gold-deep)' : 'var(--cream)', borderColor: side === 'front' ? 'var(--cream-deep)' : 'var(--cream-deep)' }}>Front</button>
-          <button onClick={() => setSide('back')} className={`btn sm ${side === 'back' ? 'cream' : 'ghost'}`} style={{ color: side === 'back' ? 'var(--gold-deep)' : 'var(--cream)', borderColor: side === 'back' ? 'var(--cream-deep)' : 'var(--cream-deep)' }}>Back</button>
-        </div>
-      </div>
-      <div style={{ padding: 40, display: 'flex', flexDirection: 'column' }}>
-        <div className="kicker" style={{ marginBottom: 12 }}>Marketing · Business Cards</div>
-        <h2 className="h2" style={{ marginBottom: 12 }}>Order your cards.</h2>
-        <p className="muted" style={{ fontSize: 14, marginBottom: 24 }}>
-          Four layouts, your details auto-filled. We'll send to print and ship to your address on file.
-        </p>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 24 }}>
-          {BUSINESS_CARDS.map(c => (
-            <button key={c.id} onClick={() => setActiveId(c.id)} style={{
-              padding: 4, borderRadius: 8, background: 'transparent',
-              border: c.id === activeId ? '2px solid var(--gold)' : '2px solid transparent',
-            }}>
-              <div style={{ aspectRatio: '1.75/1', borderRadius: 4, overflow: 'hidden', position: 'relative' }}>
-                <BusinessCardPreview design={c} agent={agent} side="front" thumb />
-              </div>
-              <div style={{ fontSize: 11, fontWeight: 500, marginTop: 6, color: 'var(--ink-2)' }}>{c.name}</div>
-            </button>
-          ))}
-        </div>
-        <div style={{ padding: 16, background: 'var(--bg-soft)', borderRadius: 10, fontSize: 13, marginBottom: 16 }}>
-          <div className="row" style={{ justifyContent: 'space-between', marginBottom: 6 }}>
-            <span className="muted">Quantity</span>
-            <span style={{ fontWeight: 600 }}>250 cards</span>
-          </div>
-          <div className="row" style={{ justifyContent: 'space-between', marginBottom: 6 }}>
-            <span className="muted">Paper</span>
-            <span style={{ fontWeight: 600 }}>Soft-touch matte</span>
-          </div>
-          <div className="row" style={{ justifyContent: 'space-between' }}>
-            <span className="muted">Ships to</span>
-            <span style={{ fontWeight: 600 }}>Address on file</span>
-          </div>
-        </div>
-        <div className="col" style={{ gap: 8, marginTop: 'auto' }}>
-          <button className="btn gold lg" onClick={handleOrder}>
-            <Icon.Sparkle /> {ordered ? 'Order placed!' : 'Order 250 cards'}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-end', flexShrink: 0 }}>
+          <a href={`business-cards.html?name=${encodeURIComponent(agent.fullName||'')}&title=${encodeURIComponent(agent.title||'')}&phone=${encodeURIComponent(agent.phone||'')}&email=${encodeURIComponent(agent.email||'')}`} target="_blank" rel="noopener" className="btn cream">
+            Open Full Size <Icon.External />
+          </a>
+          <button className="btn gold sm" onClick={markDone}>
+            <Icon.Check /> Mark Complete & Close
           </button>
-          <button className="btn ghost" onClick={onClose}>Close</button>
         </div>
       </div>
-    </div>
-  );
-}
-
-function BusinessCardPreview({ design, agent, side, thumb }) {
-  const W = thumb ? 220 : 460;
-  const H = W / 1.75;
-  const s = W / 460;
-  const px = (n) => n * s + 'px';
-  const isDark = design.bg === '#1A1815';
-  const logoSrc = isDark ? 'assets/myers-logo-white.png' : 'assets/myers-logo.png';
-
-  if (side === 'back') {
-    return (
-      <div style={{
-        width: W, height: H, background: design.bg, borderRadius: thumb ? 4 : 8,
-        boxShadow: thumb ? 'none' : '0 30px 60px rgba(0,0,0,.35)',
-        display: 'grid', placeItems: 'center', position: 'relative', overflow: 'hidden',
-      }}>
-        <img src="assets/myers-mark.png" alt="Myers" style={{ width: px(96), height: px(96), objectFit: 'contain' }} />
-        <div style={{ position: 'absolute', bottom: px(16), fontFamily: 'var(--mono)', fontSize: px(8), letterSpacing: '.18em', textTransform: 'uppercase', color: design.fg, opacity: .6 }}>
-          Where Agents Become Investors
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div style={{
-      width: W, height: H, background: design.bg, color: design.fg,
-      borderRadius: thumb ? 4 : 8,
-      boxShadow: thumb ? 'none' : '0 30px 60px rgba(0,0,0,.35)',
-      padding: px(20),
-      display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
-      position: 'relative', overflow: 'hidden',
-    }}>
-      <div className="row" style={{ justifyContent: 'space-between', alignItems: 'center' }}>
-        <img src={logoSrc} alt="Myers" style={{ height: px(28), objectFit: 'contain', objectPosition: 'left' }} />
-        <img src="assets/myers-mark.png" alt="" style={{ width: px(28), height: px(28), objectFit: 'contain' }} />
-      </div>
-      <div>
-        <div style={{ fontFamily: 'var(--serif)', fontSize: px(22), lineHeight: 1.1, marginBottom: px(2) }}>{agent.fullName}</div>
-        <div style={{ fontSize: px(9), letterSpacing: '.1em', textTransform: 'uppercase', color: design.accent, fontFamily: 'var(--mono)' }}>{agent.title}</div>
-        <div style={{ marginTop: px(10), fontSize: px(10), lineHeight: 1.6, opacity: .85 }}>
-          <div>{agent.phone}</div>
-          <div>{agent.email}</div>
-          <div style={{ opacity: .65 }}>License #{agent.license}</div>
-        </div>
-      </div>
+      <iframe src={`business-cards.html?name=${encodeURIComponent(agent.fullName||'')}&title=${encodeURIComponent(agent.title||'')}&phone=${encodeURIComponent(agent.phone||'')}&email=${encodeURIComponent(agent.email||'')}`} className="gen-frame" title="Business Card Builder" />
     </div>
   );
 }
@@ -442,8 +363,19 @@ function BusinessCardPreview({ design, agent, side, thumb }) {
 // ── Carrot Website ────────────────────────────────────────────────────────
 function CarrotSiteBuilder({ agent, onClose }) {
   const [step, setStep] = useState(0);
-  const [siteUrl, setSiteUrl] = useState(agent.first.toLowerCase() + '.myershomes.com');
-  const [primary, setPrimary] = useState('#C9941F');
+  const siteUrl = agent.first.toLowerCase() + '.myershomes.com';
+  const primary = '#C9941F';
+
+  const markDone = () => {
+    try {
+      const raw = localStorage.getItem('myers-onboarding-v2');
+      const ob = raw ? JSON.parse(raw) : { progress: {}, agent: {} };
+      ob.progress = { ...(ob.progress || {}), 'website': true };
+      localStorage.setItem('myers-onboarding-v2', JSON.stringify(ob));
+      window.postMessage({ type: 'myers-task-done', taskId: 'website' }, '*');
+    } catch (e) {}
+    onClose();
+  };
 
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.4fr', minHeight: 540 }}>
@@ -453,41 +385,48 @@ function CarrotSiteBuilder({ agent, onClose }) {
           <div style={{ width: 24, height: 24, background: '#FF6B35', borderRadius: 6, display: 'grid', placeItems: 'center', color: '#fff', fontWeight: 700, fontSize: 14 }}>C</div>
           <span style={{ fontSize: 13, fontWeight: 500 }}>Carrot.com partnership</span>
         </div>
-        <h2 className="h2" style={{ marginBottom: 12 }}>Launch your IDX site.</h2>
+        <h2 className="h2" style={{ marginBottom: 12 }}>Launch your AI-Powered Site.</h2>
         <p className="muted" style={{ fontSize: 14, marginBottom: 28 }}>
-          Free for every Myers agent. Lead-capture, IDX listings, blogs auto-published from the team feed.
+          Free for every Myers agent. We use Carrot.com&apos;s advanced AI to instantly generate high-converting landing pages tailored to your profile.
         </p>
 
         <div className="col" style={{ gap: 20 }}>
-          <SigInput label="Your subdomain" value={siteUrl} onChange={setSiteUrl} />
-
-          <div>
-            <label style={{ display: 'block', fontSize: 11, color: 'var(--muted)', letterSpacing: '.04em', textTransform: 'uppercase', marginBottom: 8 }}>Accent color</label>
-            <div className="row" style={{ gap: 8 }}>
-              {['#C9941F', '#1A1815', '#8B6B1A', '#2E5C8A'].map(c => (
-                <button key={c} onClick={() => setPrimary(c)} style={{
-                  width: 32, height: 32, borderRadius: 8, background: c,
-                  border: primary === c ? '2px solid var(--ink)' : '2px solid transparent',
-                  outline: primary === c ? '2px solid var(--gold)' : 'none', outlineOffset: 2,
-                }} />
-              ))}
+          
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, paddingBottom: 16, borderBottom: '1px solid var(--hairline)' }}>
+            <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+              <Icon.Sparkle style={{ color: 'var(--gold)' }} />
+              <span style={{ fontSize: 13, fontWeight: 500 }}>AI-generated, high-converting landing pages</span>
+            </div>
+            <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+              <Icon.Home style={{ color: 'var(--gold)' }} />
+              <span style={{ fontSize: 13, fontWeight: 500 }}>Built-in IDX integration for lead capture</span>
+            </div>
+            <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+              <Icon.Doc style={{ color: 'var(--gold)' }} />
+              <span style={{ fontSize: 13, fontWeight: 500 }}>Automated SEO blog posts from the team feed</span>
             </div>
           </div>
 
           <div style={{ padding: 16, background: 'var(--bg-soft)', borderRadius: 10, fontSize: 13 }}>
-            <div className="row" style={{ justifyContent: 'space-between', marginBottom: 6 }}>
-              <span className="muted">Carrot Plan</span><span style={{ fontWeight: 600 }}>Agent · IDX</span>
+            <div style={{ marginBottom: 12, fontSize: 11, fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase', color: 'var(--muted)' }}>
+              Profile details to be submitted
             </div>
             <div className="row" style={{ justifyContent: 'space-between', marginBottom: 6 }}>
-              <span className="muted">Cost to you</span><span style={{ fontWeight: 700, color: 'var(--green)' }}>Free for Myers agents</span>
+              <span className="muted">Name</span><span style={{ fontWeight: 600 }}>{agent.fullName}</span>
+            </div>
+            <div className="row" style={{ justifyContent: 'space-between', marginBottom: 6 }}>
+              <span className="muted">Email</span><span style={{ fontWeight: 600 }}>{agent.email}</span>
             </div>
             <div className="row" style={{ justifyContent: 'space-between' }}>
-              <span className="muted">Covered by</span><span style={{ fontWeight: 600 }}>Myers partnership</span>
+              <span className="muted">Phone</span><span style={{ fontWeight: 600 }}>{agent.phone}</span>
             </div>
           </div>
 
-          <button className="btn gold lg" onClick={() => alert('Site request sent! Carrot will email you within 24h to finalize.')}>
-            <Icon.Sparkle /> Request my site
+          <button className="btn gold lg" onClick={() => {
+            alert('Request sent to Jeanne! Your AI-powered site will be provisioned shortly.');
+            markDone();
+          }}>
+            <Icon.Mail /> Send Request to Jeanne
           </button>
         </div>
       </div>
@@ -557,18 +496,21 @@ function CarrotPagePreview({ agent, primary }) {
 }
 
 // ── Social brand kit ──────────────────────────────────────────────────────
-function SocialKit({ onClose }) {
+function SocialKit({ agent, onClose }) {
+  const driveLink = agent?.folderUrl || '#'; // Fallback if no folder URL exists yet
+
   return (
     <div style={{ padding: 48 }}>
       <div className="kicker" style={{ marginBottom: 12 }}>Marketing · Social Brand Kit</div>
       <h2 className="h2" style={{ marginBottom: 12 }}>Everything to stay on-brand.</h2>
       <p className="muted" style={{ fontSize: 14, marginBottom: 32, maxWidth: 560 }}>
-        Logos, fonts, palette, story templates, listing flyers. Download what you need, or grab the full ZIP.
+        Logos, fonts, palette, story templates, listing flyers. Grab everything from your Google Drive folder.
       </p>
 
       <div className="row mt-16" style={{ gap: 8, marginBottom: 24 }}>
-        <button className="btn gold"><Icon.Download /> Download all (.zip · 84MB)</button>
-        <button className="btn ghost">Open in Drive <Icon.External /></button>
+        <a href={driveLink} target="_blank" rel="noopener" className="btn gold">
+          Open in Drive <Icon.External />
+        </a>
       </div>
 
       <div className="grid-2">
@@ -582,13 +524,12 @@ function SocialKit({ onClose }) {
                 {item.files.map(f => <span key={f} className="pill" style={{ fontSize: 11 }}>{f}</span>)}
               </div>
             </div>
-            <button className="btn ghost sm" style={{ alignSelf: 'flex-start' }}><Icon.Download /></button>
           </div>
         ))}
       </div>
 
       <div className="callout mt-24">
-        <strong>Brand guideline:</strong> Always pair the gold (#C9941F) with cream (#FBE8B7) or ink (#1A1815). Avoid placing gold on white without the cream backdrop — contrast drops below AA.
+        <strong>Brand guideline:</strong> Always pair the gold (#F5B021) with cream (#FBE8B7) or ink (#1A1815). Avoid placing gold on white without the cream backdrop — contrast drops below AA.
       </div>
     </div>
   );
@@ -615,7 +556,84 @@ function SocialKitIcon({ kind }) {
   return null;
 }
 
+function PayoutModal({ onClose }) {
+  const markDone = () => {
+    try {
+      const raw = localStorage.getItem('myers-onboarding-v2');
+      const ob = raw ? JSON.parse(raw) : { progress: {}, agent: {} };
+      ob.progress = { ...(ob.progress || {}), 'payout-review': true };
+      localStorage.setItem('myers-onboarding-v2', JSON.stringify(ob));
+      window.postMessage({ type: 'myers-task-done', taskId: 'payout-review' }, '*');
+    } catch (e) {}
+    onClose();
+  };
+
+  return (
+    <div style={{ padding: 40, maxWidth: 640, margin: '0 auto' }}>
+      <div className="kicker" style={{ marginBottom: 12 }}>Finance & Operations</div>
+      <h2 className="h2" style={{ marginBottom: 24 }}>Myers Payout Process</h2>
+      
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 24, marginBottom: 32 }}>
+        
+        <div style={{ background: 'var(--surface)', padding: 24, borderRadius: 12, border: '1px solid var(--hairline)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+            <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(201, 148, 31, 0.15)', color: 'var(--gold)', display: 'grid', placeItems: 'center' }}>
+              <Icon.Money style={{ width: 16, height: 16 }} />
+            </div>
+            <h3 style={{ fontSize: 16, fontWeight: 600 }}>Normal Commission Payouts</h3>
+          </div>
+          <p className="muted" style={{ fontSize: 14, lineHeight: 1.6, marginBottom: 12 }}>
+            Commissions are paid out twice a month: on the <strong>15th</strong> and the <strong>last day of the month</strong>. 
+          </p>
+          <div style={{ padding: 12, background: 'var(--bg-soft)', borderRadius: 8, fontSize: 13, borderLeft: '3px solid var(--gold)' }}>
+            <strong>Important rule:</strong> A transaction must successfully close and fund <em>at least 2 days prior</em> to the payout date to be included in that check.
+          </div>
+        </div>
+
+        <div style={{ background: 'var(--surface)', padding: 24, borderRadius: 12, border: '1px solid var(--hairline)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+            <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(40, 200, 64, 0.15)', color: 'var(--green)', display: 'grid', placeItems: 'center' }}>
+              <Icon.Zap style={{ width: 16, height: 16 }} />
+            </div>
+            <h3 style={{ fontSize: 16, fontWeight: 600 }}>Expedited Payout Option</h3>
+          </div>
+          <p className="muted" style={{ fontSize: 14, lineHeight: 1.6, marginBottom: 12 }}>
+            Need your funds faster? You can request to receive your payment the same day or sooner. 
+          </p>
+          <ul style={{ paddingLeft: 20, fontSize: 14, color: 'var(--muted)', marginBottom: 16, lineHeight: 1.5 }}>
+            <li>There is a <strong>1% fee</strong> for expedited payouts.</li>
+            <li>The minimum fee is <strong>$50</strong>.</li>
+          </ul>
+          <p style={{ fontSize: 13, fontWeight: 500 }}>
+            To request: Contact Michael DeMott at <a href="mailto:mdemott@trelly.com" style={{ color: 'var(--gold)' }}>mdemott@trelly.com</a> or text (972) 849-7495.
+          </p>
+        </div>
+
+        <div style={{ background: 'var(--surface)', padding: 24, borderRadius: 12, border: '1px solid var(--hairline)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+            <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(107, 78, 142, 0.15)', color: '#6B4E8E', display: 'grid', placeItems: 'center' }}>
+              <Icon.Calendar style={{ width: 16, height: 16 }} />
+            </div>
+            <h3 style={{ fontSize: 16, fontWeight: 600 }}>Rev Share Payouts</h3>
+          </div>
+          <p className="muted" style={{ fontSize: 14, lineHeight: 1.6 }}>
+            Rev Share Commissions are paid out strictly on the <strong>last day of each month</strong>. Please note that there is <em>no</em> expedited payout option available for Rev Share commissions.
+          </p>
+        </div>
+
+      </div>
+
+      <div style={{ display: 'flex', justifyContent: 'flex-end', borderTop: '1px solid var(--hairline)', paddingTop: 24 }}>
+        <button className="btn gold lg" onClick={markDone}>
+          <Icon.Check /> I Acknowledge & Understand
+        </button>
+      </div>
+
+    </div>
+  );
+}
+
 Object.assign(window, {
-  WelcomePostPicker, EmailSigBuilder, BusinessCardsBuilder, CarrotSiteBuilder, SocialKit,
+  WelcomePostPicker, EmailSigBuilder, BusinessCardsBuilder, CarrotSiteBuilder, SocialKit, PayoutModal
 });
 })();

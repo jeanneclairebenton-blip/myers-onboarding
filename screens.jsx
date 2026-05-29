@@ -272,12 +272,13 @@ const ICON_MAP = {
   Signature: () => Icon.Signature, Receipt: () => Icon.Receipt, CreditCard: () => Icon.CreditCard,
 };
 function TaskBox({ task, checked, onToggle }) {
+  const [imgExpanded, setImgExpanded] = React.useState(false);
   const iconKey = task.icon ? task.icon[0].toUpperCase() + task.icon.slice(1) : null;
   const IconComp = (iconKey && ICON_MAP[iconKey]) ? ICON_MAP[iconKey]() : Icon.Doc;
   const accent = task.accent || 'var(--gold)';
   return (
     <div
-      className="task-box"
+      className={`task-box ${checked ? 'checked' : ''}`}
       onClick={onToggle}
       style={{
         cursor: 'pointer',
@@ -314,9 +315,25 @@ function TaskBox({ task, checked, onToggle }) {
         <div style={{ fontWeight: 700, fontSize: 14, lineHeight: 1.3, textDecoration: checked ? 'line-through' : 'none', textDecorationColor: 'var(--muted)' }}>
           {task.title.replace(/\s*\(optional\)\s*$/i, '')}
         </div>
-        {task.optional && <span style={{ fontSize: 9, fontFamily: 'var(--mono)', color: 'var(--muted)', letterSpacing: '.08em', textTransform: 'uppercase', fontWeight: 700, padding: '2px 6px', background: 'var(--bg-soft)', borderRadius: 4 }}>Optional</span>}
+        {task.optional && <span className="task-opt" style={{ fontSize: 9, fontFamily: 'var(--mono)', color: 'var(--muted)', letterSpacing: '.08em', textTransform: 'uppercase', fontWeight: 700, padding: '2px 6px', background: 'var(--bg-soft)', borderRadius: 4 }}>Optional</span>}
       </div>
-      <div style={{ flex: 1, fontSize: 12, color: 'var(--muted)', lineHeight: 1.5 }}>{task.desc}</div>
+      <div className="task-desc" style={{ flex: 1, fontSize: 12, color: 'var(--muted)', lineHeight: 1.5 }}>{task.desc}</div>
+      {task.image && (
+        <>
+          <div 
+            onClick={(e) => { e.stopPropagation(); setImgExpanded(true); }}
+            style={{ marginTop: 10, borderRadius: 6, overflow: 'hidden', border: '1px solid var(--hairline)', background: 'var(--bg-soft)', cursor: 'zoom-in' }}>
+            <img src={task.image} alt="Guide" style={{ display: 'block', width: '100%', height: 'auto', maxHeight: 200, objectFit: 'contain' }} />
+          </div>
+          {imgExpanded && (
+            <div 
+              onClick={(e) => { e.stopPropagation(); setImgExpanded(false); }}
+              style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.85)', zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 40, cursor: 'zoom-out' }}>
+              <img src={task.image} alt="Guide Expanded" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', borderRadius: 8, boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)' }} />
+            </div>
+          )}
+        </>
+      )}
       {task.links && task.links.length > 0 && (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 4 }}>
           {task.links.map((link) => (
@@ -391,7 +408,7 @@ function WizardStep({ phase, idx, status, open, onToggle, progress, toggleTask, 
           {phase.id === 'paperwork' && <PaperworkExtras progress={progress} toggleTask={toggleTask} />}
           {phase.id === 'licensing' && <LicensingExtras />}
           {phase.id === 'tools' && <ToolsExtras />}
-          {phase.isMarketing && <BrandIntro openMarketing={openMarketing} progress={progress} />}
+          {phase.isMarketing && <BrandIntro openMarketing={openMarketing} progress={progress} toggleTask={toggleTask} />}
           {phase.id === 'closing' && <ClosingExtras />}
 
           {!phase.isMarketing && !phase.isProfile && phase.id !== 'paperwork' && (() => {
@@ -430,6 +447,28 @@ function WizardStep({ phase, idx, status, open, onToggle, progress, toggleTask, 
           })()}
         </div>
       )}
+    </div>
+  );
+}
+
+function ProfileSelect({ label, value, options, onChange }) {
+  return (
+    <div style={{ marginBottom: 12 }}>
+      <label style={{ display: 'block', fontSize: 11, color: 'var(--muted)', letterSpacing: '.04em', textTransform: 'uppercase', fontWeight: 700, marginBottom: 6 }}>{label}</label>
+      <select
+        value={value || ''}
+        onChange={(e) => onChange(e.target.value)}
+        style={{
+          width: '100%', padding: '10px 12px', fontSize: 14, fontFamily: 'var(--sans)',
+          border: '1px solid var(--hairline-strong)', borderRadius: 6, background: 'var(--surface)',
+          color: 'var(--ink)', outline: 'none', fontWeight: 500, cursor: 'pointer',
+        }}
+        onFocus={(e) => e.target.style.borderColor = 'var(--gold)'}
+        onBlur={(e) => e.target.style.borderColor = 'var(--hairline-strong)'}
+      >
+        <option value="" disabled>Select your role</option>
+        {options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+      </select>
     </div>
   );
 }
@@ -492,13 +531,33 @@ function ProfileStep({ agent, updateAgent, progress, toggleTask }) {
             updateAgent({ fullName: v, first: parts[0] || '', last: parts.slice(1).join(' ') || '' });
           }}
         />
-        <ProfileInput label="Title / role" value={agent.title} onChange={(v) => updateAgent({ title: v })} />
+        <ProfileSelect label="Title / role" value={agent.title} options={['Investment Consultant', 'Acquisitions Specialist']} onChange={(v) => updateAgent({ title: v })} />
         <ProfileInput label="Phone" value={agent.phone} onChange={(v) => updateAgent({ phone: v })} />
         <ProfileInput label="Email" value={agent.email} onChange={(v) => updateAgent({ email: v })} />
         <div style={{ marginTop: 20 }}>
           <button
             className="btn gold lg"
-            onClick={() => { if (!progress['profile-done']) toggleTask('profile-done'); }}
+            onClick={() => {
+              if (!progress['profile-done']) {
+                toggleTask('profile-done');
+                if (window.GOOGLE_SHEETS_WEBHOOK_URL) {
+                  fetch(window.GOOGLE_SHEETS_WEBHOOK_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({
+                      type: 'profile',
+                      agent: {
+                        title: agent.title,
+                        phone: agent.phone,
+                        email: agent.email,
+                        fullName: agent.fullName
+                      }
+                    })
+                  }).catch(e => console.error('Error posting to sheets', e));
+                }
+              }
+            }}
             disabled={!!progress['profile-done']}
             style={progress['profile-done'] ? { background: 'var(--ink)', borderColor: 'var(--ink)', opacity: 1 } : null}
           >
@@ -528,6 +587,7 @@ function ProfileInput({ label, value, onChange }) {
     </div>
   );
 }
+
 
 // ── Phase-specific extras ─────────────────────────────────────────────────
 function PaperworkExtras({ progress, toggleTask }) {
@@ -649,7 +709,7 @@ function ToolsExtras() {
   return null;
 }
 
-function BrandIntro({ openMarketing, progress }) {
+function BrandIntro({ openMarketing, progress, toggleTask }) {
   const { PHASES } = window.MYERS_DATA;
   const brand = PHASES.find(p => p.isMarketing);
   const iconMap = {
@@ -665,7 +725,14 @@ function BrandIntro({ openMarketing, progress }) {
         const done = !!progress[task.id];
         const IconComp = iconMap[task.action] || Icon.Sparkle;
         return (
-          <div key={task.id} className="card card-link task-box" onClick={() => openMarketing(task.action)} style={{ display: 'flex', flexDirection: 'column', gap: 12, minHeight: 160, padding: 18, background: done ? 'var(--cream-soft)' : 'var(--surface)', borderColor: done ? 'var(--cream-deep)' : 'var(--hairline)', position: 'relative' }}>
+          <div key={task.id} className="card card-link task-box" onClick={() => {
+            if (task.action) {
+              openMarketing(task.action);
+            } else if (task.links && task.links.length > 0) {
+              window.open(task.links[0].href, '_blank');
+              if (!progress[task.id]) toggleTask(task.id);
+            }
+          }} style={{ display: 'flex', flexDirection: 'column', gap: 12, minHeight: 160, padding: 18, background: done ? 'var(--cream-soft)' : 'var(--surface)', borderColor: done ? 'var(--cream-deep)' : 'var(--hairline)', position: 'relative', cursor: 'pointer' }}>
             {!done && (
               <div style={{
                 position: 'absolute', top: 0, left: 18, right: 18, height: 2,
@@ -741,11 +808,16 @@ function TeamPage({ goTo }) {
   );
 }
 
-// ── Sync to Drive demo modal ─────────────────────────────────────────────
+// ── Sync to Google Sheets modal ──────────────────────────────────────────
 function SyncToDriveModal({ agent, progress, onClose, onSubmitted }) {
-  const [submitted, setSubmitted] = useState(false);
-  const slug = (agent.fullName || 'agent').replace(/\s+/g, '-');
+  const [status, setStatus] = useState('idle'); // idle, syncing, success, error
+  const [errorMsg, setErrorMsg] = useState('');
   const completedAt = new Date().toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
+
+  // Count completed tasks
+  const PHASES = window.MYERS_DATA.PHASES;
+  const allTasks = PHASES.flatMap(p => p.tasks);
+  const completedCount = allTasks.filter(t => progress[t.id]).length;
 
   const sheetRow = {
     'Name': agent.fullName,
@@ -753,38 +825,48 @@ function SyncToDriveModal({ agent, progress, onClose, onSubmitted }) {
     'Phone': agent.phone,
     'License #': agent.license,
     'Title': agent.title,
-    'Welcome template': agent.welcomeTemplate || '—',
-    'Business card style': agent.cardStyle || '—',
-    'Carrot subdomain': agent.subdomain || `${agent.first?.toLowerCase()}.myershomes.com`,
-    'Completed at': completedAt,
+    'Tasks Complete': completedCount + ' / ' + allTasks.length,
+    'Synced at': completedAt,
   };
 
-  const folderName = slug;
-  const driveFiles = [
-    { name: `${slug}-headshot.jpg`, size: '· uploaded by agent', has: !!agent.photo },
-    { name: `myers-welcome-${agent.welcomeTemplate || 'layered'}-${slug}.png`, size: '· downloaded by agent', has: !!progress['welcome-post'] },
-    { name: `business-card-${slug}.pdf`, size: '· print-ready', has: !!progress['cards'] },
-  ];
+  const handleSubmit = async () => {
+    setStatus('syncing');
+    setErrorMsg('');
+    try {
+      const result = await window._myersSyncFull(agent, progress);
+      if (result.success) {
+        setStatus('success');
+        onSubmitted && onSubmitted();
+        setTimeout(() => { onClose(); }, 1600);
+      } else {
+        setStatus('error');
+        setErrorMsg(result.error || 'Unknown error');
+      }
+    } catch (e) {
+      setStatus('error');
+      setErrorMsg(e.message || 'Failed to connect to Google Sheets');
+    }
+  };
 
   return (
     <div style={{ padding: 0 }}>
       <div style={{ padding: '28px 36px 20px', borderBottom: '1px solid var(--hairline)' }}>
         <div className="kicker" style={{ marginBottom: 8 }}>Submit · Google Sheets + Drive</div>
-        <h2 style={{ fontFamily: 'var(--serif)', fontSize: 28, fontWeight: 400, marginBottom: 8 }}>Here's what will sync.</h2>
+        <h2 style={{ fontFamily: 'var(--serif)', fontSize: 28, fontWeight: 400, marginBottom: 8 }}>Sync your progress.</h2>
         <p style={{ fontSize: 13, color: 'var(--muted)', maxWidth: 560 }}>
-          This is a preview. In production, hitting "Submit" sends this data to the Myers onboarding sheet and saves uploaded files to a Drive folder named for the agent.
+          This will update your row in the <strong>New Agent Onboarding</strong> sheet and save your headshot + marketing files to a folder in <strong>2026 Recruiting</strong>.
         </p>
       </div>
 
       <div style={{ padding: 28, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-        {/* Sheet row preview */}
+        {/* Agent info preview */}
         <div>
           <div className="eyebrow" style={{ marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <SheetIcon /> Row appended to Sheet
+            <SheetIcon /> Your record
           </div>
           <div style={{ background: 'var(--surface)', border: '1px solid var(--hairline)', borderRadius: 8, overflow: 'hidden' }}>
             {Object.entries(sheetRow).map(([k, v], i) => (
-              <div key={k} style={{ display: 'grid', gridTemplateColumns: '130px 1fr', fontSize: 12, borderBottom: i < Object.keys(sheetRow).length - 1 ? '1px solid var(--hairline)' : 'none' }}>
+              <div key={k} style={{ display: 'grid', gridTemplateColumns: '120px 1fr', fontSize: 12, borderBottom: i < Object.keys(sheetRow).length - 1 ? '1px solid var(--hairline)' : 'none' }}>
                 <div style={{ padding: '8px 12px', background: 'var(--bg-soft)', color: 'var(--muted)', fontWeight: 600, borderRight: '1px solid var(--hairline)' }}>{k}</div>
                 <div style={{ padding: '8px 12px', color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v || '—'}</div>
               </div>
@@ -792,39 +874,56 @@ function SyncToDriveModal({ agent, progress, onClose, onSubmitted }) {
           </div>
         </div>
 
-        {/* Drive folder preview */}
+        {/* What gets synced */}
         <div>
           <div className="eyebrow" style={{ marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <DriveIcon /> Drive folder created
+            <DriveIcon /> Where it goes
           </div>
           <div style={{ background: 'var(--surface)', border: '1px solid var(--hairline)', borderRadius: 8 }}>
-            <div style={{ padding: '12px 14px', background: 'var(--bg-soft)', borderBottom: '1px solid var(--hairline)', fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--ink)', display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Icon.Folder style={{ color: 'var(--gold-deep)' }} />
-              /Myers Agents/{folderName}/
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '14px 14px', borderBottom: '1px solid var(--hairline)' }}>
+              <SheetIcon />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 13, fontWeight: 600 }}>New Agent Onboarding</div>
+                <div style={{ fontSize: 11, color: 'var(--muted)' }}>Task progress + marketing selections</div>
+              </div>
+              {status === 'success' && <span style={{ color: 'var(--green)', fontSize: 12, fontWeight: 700 }}>✓ Synced</span>}
             </div>
-            {driveFiles.map((f, i) => (
-              <div key={f.name} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderBottom: i < driveFiles.length - 1 ? '1px solid var(--hairline)' : 'none', opacity: f.has ? 1 : 0.5 }}>
-                <Icon.Doc style={{ color: f.has ? 'var(--gold-deep)' : 'var(--faint)' }} />
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 12, fontWeight: 600, fontFamily: 'var(--mono)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{f.name}</div>
-                  <div style={{ fontSize: 10, color: 'var(--muted)' }}>{f.has ? `✓ Ready ${f.size}` : 'Not uploaded'}</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '14px 14px' }}>
+              <Icon.Folder style={{ width: 14, height: 14, color: 'var(--gold-deep)' }} />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 13, fontWeight: 600 }}>2026 Recruiting / {agent.fullName || 'Agent'}</div>
+                <div style={{ fontSize: 11, color: 'var(--muted)' }}>
+                  {agent.photo ? '📸 Headshot' : ''}
+                  {agent.photo && progress['welcome-post'] ? ' · ' : ''}
+                  {progress['welcome-post'] ? '🎨 Welcome post' : ''}
+                  {!agent.photo && !progress['welcome-post'] ? 'No files to upload yet' : ' → saved to Drive'}
                 </div>
               </div>
-            ))}
+              {status === 'success' && <span style={{ color: 'var(--green)', fontSize: 12, fontWeight: 700 }}>✓ Saved</span>}
+            </div>
           </div>
         </div>
       </div>
 
-      <div style={{ padding: '0 28px 28px' }}>
-        <div className="callout">
-          <strong>Demo mode.</strong> To make this real: deploy a Google Apps Script web app (10 min setup), then paste its URL into <span className="code">app.jsx</span>. The script appends a row to your sheet and uploads files to a per-agent Drive folder. I can hand you the script when you're ready.
+      {status === 'error' && (
+        <div style={{ padding: '0 28px 16px' }}>
+          <div className="callout" style={{ background: '#FFF0F0', borderColor: '#E8A0A0', color: '#8B3030' }}>
+            <strong>Sync failed:</strong> {errorMsg}
+          </div>
         </div>
-      </div>
+      )}
 
       <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, padding: '0 28px 28px' }}>
-        <button className="btn ghost" onClick={onClose}>Close preview</button>
-        <button className="btn gold" onClick={() => { setSubmitted(true); onSubmitted && onSubmitted(); setTimeout(() => { setSubmitted(false); onClose(); }, 1600); }} disabled={submitted}>
-          {submitted ? '✓ Submitted (demo)' : 'Submit (demo)'}
+        <button className="btn ghost" onClick={onClose}>Close</button>
+        <button
+          className="btn gold"
+          onClick={handleSubmit}
+          disabled={status === 'syncing' || status === 'success'}
+        >
+          {status === 'syncing' ? '⏳ Syncing…'
+            : status === 'success' ? '✓ Synced!'
+            : status === 'error' ? 'Retry'
+            : 'Submit to Google Sheets'}
         </button>
       </div>
     </div>

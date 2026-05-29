@@ -3,10 +3,12 @@
 const { useState, useEffect } = React;
 const { Icon, Confetti, Modal, ProgressBar, Pill, SectionHead, Contact, Check } = window;
 const { Wizard, TeamPage, SyncToDriveModal } = window;
-const { WelcomePostPicker, EmailSigBuilder, BusinessCardsBuilder, CarrotSiteBuilder, SocialKit } = window;
+const { WelcomePostPicker, EmailSigBuilder, BusinessCardsBuilder, CarrotSiteBuilder, SocialKit, PayoutModal } = window;
 const { TweaksPanel, TweakSection, TweakRadio, TweakToggle, TweakButton, TweakSelect, useTweaks } = window;
 const { Cat } = window;
 const PHASES = window.MYERS_DATA.PHASES;
+
+window.GOOGLE_SHEETS_WEBHOOK_URL = ''; // Paste your Apps Script Web App URL here
 
 const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "palette": "gold",
@@ -20,7 +22,7 @@ const DEFAULT_AGENT = {
   first: 'Alex',
   last: 'Rivera',
   fullName: 'Alex Rivera',
-  title: 'Investment Specialist',
+  title: '',
   phone: '(214) 555-0119',
   email: 'alex@myershomebuyers.com',
   license: '0789421',
@@ -28,74 +30,126 @@ const DEFAULT_AGENT = {
 
 const STORAGE_KEY = 'myers-onboarding-v2';
 
-// ── Google Sheets + Drive Sync ─────────────────────────────────────────────
+// ── Google Sheets Sync ──────────────────────────────────────────────────────
 // Replace this URL with your deployed Apps Script web app URL.
-// Setup: Google Sheet → Extensions → Apps Script → paste the doPost function
-// → Deploy → New deployment → Web app → Anyone → Copy URL here.
-const SHEET_URL = 'https://script.google.com/macros/s/AKfycbzDquRtva4ZHShdm8TDiNpbbnP5GEDQbQ8wmktlhtzstWhxDQuyWpGvwq3V7F3F6S0p/exec';
+// See SETUP_INSTRUCTIONS.md for step-by-step guide.
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbzVhSsHpwwdYyUTrgbi5oTsaKhG6GUlwTIKoIiJVTThHF2chQUiXkqhKfFQ0nZ2Xv1cWQ/exec';
 
-// Milestone definitions — maps phase IDs to readable milestone names
-const MILESTONES = {
-  'profile':  'Profile Complete',
-  'paperwork':'Paperwork Signed',
-  'licensing':'License Transferred',
-  'tools':    'Tech Setup Complete',
-  'brand':    'Brand Kit Ready',
-  'closing':  'Launch Ready 🚀',
-};
+// Track which syncs are in-flight to avoid duplicates
+const _syncQueue = {};
 
-// Track which milestones we've already sent (so we don't double-send)
-const _sentMilestones = {};
-
-function syncMilestone(phaseId, agent, progress, extras) {
-  if (!SHEET_URL) return;
-  if (_sentMilestones[phaseId + '-' + (agent.fullName||'')]) return; // already sent
-  _sentMilestones[phaseId + '-' + (agent.fullName||'')] = true;
+// Sync a single task completion to both sheets
+function syncTask(taskId, completed, agent, allProgress) {
+  if (!SHEET_URL || SHEET_URL === 'PASTE_YOUR_APPS_SCRIPT_URL_HERE') {
+    console.warn('Sheet URL not configured — skipping sync. See SETUP_INSTRUCTIONS.md');
+    return;
+  }
+  const queueKey = taskId + '-' + (agent.email || '');
+  if (_syncQueue[queueKey]) return;
+  _syncQueue[queueKey] = true;
 
   const payload = {
-    type: 'milestone',
-    milestone: MILESTONES[phaseId] || phaseId,
-    phaseId: phaseId,
-    fullName: agent.fullName || '',
-    first: agent.first || '',
-    last: agent.last || '',
-    email: agent.email || '',
-    phone: agent.phone || '',
-    title: agent.title || '',
-    license: agent.license || '',
-    progress: progress,
+    type: 'task',
+    taskId: taskId,
+    completed: completed,
+    agent: {
+      fullName: agent.fullName || '',
+      first: agent.first || '',
+      last: agent.last || '',
+      email: agent.email || '',
+      phone: agent.phone || '',
+      title: agent.title || '',
+      license: agent.license || '',
+    },
+    allProgress: allProgress,
     timestamp: new Date().toISOString(),
   };
 
-  // Attach photo as base64 if available (for Drive upload)
-  if (extras?.photo) payload.photo = extras.photo;
-  // Attach welcome template image if available
-  if (extras?.welcomeTemplate) payload.welcomeTemplate = extras.welcomeTemplate;
-  if (extras?.welcomeTemplateName) payload.welcomeTemplateName = extras.welcomeTemplateName;
-
-  try {
-    fetch(SHEET_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-  } catch (e) { console.warn('Milestone sync failed:', e); }
+  fetch(SHEET_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify(payload),
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.success) console.log('✓ Synced task:', taskId);
+    else console.warn('Sync error:', data.error);
+  })
+  .catch(e => console.warn('Sync failed:', e))
+  .finally(() => { delete _syncQueue[queueKey]; });
 }
 
-// Check if a milestone was just hit (all required tasks in a phase done)
-function checkMilestones(progress, agent) {
-  const PHASES = window.MYERS_DATA.PHASES;
-  PHASES.forEach(phase => {
-    const required = phase.tasks.filter(t => !t.optional);
-    const allDone = required.every(t => progress[t.id]);
-    if (allDone) {
-      const extras = {};
-      if (phase.id === 'profile' && agent.photo) extras.photo = agent.photo;
-      syncMilestone(phase.id, agent, progress, extras);
-    }
-  });
+// Sync agent profile info (creates row if new agent)
+function syncProfile(agent, allProgress) {
+  if (!SHEET_URL || SHEET_URL === 'PASTE_YOUR_APPS_SCRIPT_URL_HERE') return;
+
+  const payload = {
+    type: 'profile',
+    agent: {
+      fullName: agent.fullName || '',
+      first: agent.first || '',
+      last: agent.last || '',
+      email: agent.email || '',
+      phone: agent.phone || '',
+      title: agent.title || '',
+      license: agent.license || '',
+    },
+    allProgress: allProgress,
+    timestamp: new Date().toISOString(),
+  };
+
+  fetch(SHEET_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify(payload),
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.success) console.log('✓ Profile synced');
+    else console.warn('Profile sync error:', data.error);
+  })
+  .catch(e => console.warn('Profile sync failed:', e));
 }
+
+// Full sync — sends all progress + photos + marketing at once (used by Submit button)
+function syncFull(agent, allProgress) {
+  if (!SHEET_URL || SHEET_URL === 'PASTE_YOUR_APPS_SCRIPT_URL_HERE') {
+    return Promise.reject(new Error('Sheet URL not configured'));
+  }
+
+  const payload = {
+    type: 'full',
+    agent: {
+      fullName: agent.fullName || '',
+      first: agent.first || '',
+      last: agent.last || '',
+      email: agent.email || '',
+      phone: agent.phone || '',
+      title: agent.title || '',
+      license: agent.license || '',
+    },
+    allProgress: allProgress,
+    // Include headshot photo (base64) for Drive upload
+    photo: agent.photo || null,
+    // Include marketing selections
+    marketing: {
+      welcomeTemplate: agent.welcomeTemplate || null,
+      cardStyle: agent.cardStyle || null,
+      welcomeImage: agent.welcomeImage || null,
+    },
+    timestamp: new Date().toISOString(),
+  };
+
+  return fetch(SHEET_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify(payload),
+  })
+  .then(r => r.json());
+}
+
+// Make syncFull available to other components (SyncToDriveModal)
+window._myersSyncFull = syncFull;
 
 function loadState() {
   try {
@@ -144,7 +198,12 @@ function App() {
       const next = { ...s.progress, [taskId]: !wasOn };
       if (!wasOn) {
         setConfetti(c => c + 1);
-        checkMilestones(next, s.agent);
+      }
+      // Sync task to Google Sheet
+      syncTask(taskId, !wasOn, s.agent, next);
+      // If profile was just confirmed, also sync profile info
+      if (taskId === 'profile-done' && !wasOn) {
+        syncProfile(s.agent, next);
       }
       return { ...s, progress: next };
     });
@@ -155,7 +214,11 @@ function App() {
       if (s.progress[taskId]) return s;
       setConfetti(c => c + 1);
       const next = { ...s.progress, [taskId]: true };
-      checkMilestones(next, s.agent);
+      // Sync task to Google Sheet
+      syncTask(taskId, true, s.agent, next);
+      if (taskId === 'profile-done') {
+        syncProfile(s.agent, next);
+      }
       return { ...s, progress: next };
     });
   };
@@ -208,7 +271,7 @@ function App() {
 
   return (
     <div className="app-root">
-      <Topbar agent={state.agent} route={route} goTo={guardedSetRoute} style={t.style || 'editorial'} setStyle={(v) => setTweak('style', v)} />
+      <Topbar agent={state.agent} route={route} goTo={guardedSetRoute} style={t.style || 'editorial'} setStyle={(v) => setTweak('style', v)} resetProgress={resetProgress} />
 
       <main>
         {route.view === 'dashboard' && (
@@ -238,6 +301,9 @@ function App() {
       <Modal open={marketing === 'welcome-post'} onClose={() => setMarketing(null)}>
         <WelcomePostPicker agent={state.agent} onClose={() => setMarketing(null)} />
       </Modal>
+      <Modal open={marketing === 'email-sig'} onClose={() => setMarketing(null)}>
+        <EmailSigBuilder agent={state.agent} onClose={() => setMarketing(null)} />
+      </Modal>
       <Modal open={marketing === 'cards'} onClose={() => setMarketing(null)}>
         <BusinessCardsBuilder agent={state.agent} onClose={() => setMarketing(null)} />
       </Modal>
@@ -245,7 +311,10 @@ function App() {
         <CarrotSiteBuilder agent={state.agent} onClose={() => setMarketing(null)} />
       </Modal>
       <Modal open={marketing === 'social'} onClose={() => setMarketing(null)} maxWidth={780}>
-        <SocialKit onClose={() => setMarketing(null)} />
+        <SocialKit agent={state.agent} onClose={() => setMarketing(null)} />
+      </Modal>
+      <Modal open={marketing === 'payout-process'} onClose={() => setMarketing(null)}>
+        <PayoutModal onClose={() => setMarketing(null)} />
       </Modal>
       <Modal open={showSync} onClose={() => setShowSync(false)} maxWidth={880}>
         <SyncToDriveModal agent={state.agent} progress={state.progress} onClose={() => setShowSync(false)} onSubmitted={() => { setSyncSubmitted(true); setTimeout(() => setRoute({ view: 'team' }), 1700); }} />
@@ -254,12 +323,8 @@ function App() {
       <TweaksPanel>
         <TweakSection label="2026 Style Mode" />
         <TweakSelect label="Style" value={t.style}
-          options={['editorial', 'bento', 'glass', 'dark', 'sentient', 'layered']}
+          options={['editorial', 'dark']}
           onChange={(v) => setTweak('style', v)} />
-        <TweakSection label="Brand palette" />
-        <TweakRadio label="Accent" value={t.palette}
-          options={['gold', 'ember', 'sage', 'slate']}
-          onChange={(v) => setTweak('palette', v)} />
         <TweakSection label="Layout" />
         <TweakRadio label="Density" value={t.density}
           options={['compact', 'regular', 'comfy']}
@@ -274,24 +339,20 @@ function App() {
   );
 }
 
-function Topbar({ agent, route, goTo, style, setStyle }) {
+function Topbar({ agent, route, goTo, style, setStyle, resetProgress }) {
   const STYLES = [
-    { id: 'editorial', name: 'Editorial' },
-    { id: 'bento', name: 'Bento' },
-    { id: 'glass', name: 'Glass' },
-    { id: 'dark', name: 'Dark Studio' },
-    { id: 'sentient', name: 'Sentient' },
-    { id: 'layered', name: 'Bento 2.0' },
+    { id: 'editorial', name: 'Light' },
+    { id: 'dark', name: 'Dark' },
   ];
   return (
     <header className="topbar">
       <div className="topbar-inner">
-        <div className="brand" onClick={() => goTo({ view: 'dashboard' })} style={{ cursor: 'pointer' }}>
-          <div className="brand-mark">M</div>
-          Myers
-          <div className="brand-sub">Agent Onboarding</div>
+        <div className="brand" onClick={() => goTo({ view: 'dashboard' })} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 12 }}>
+          <img src={style === 'dark' ? 'assets/logo-white.png' : 'assets/logo-black.png'} alt="Myers Home Buyers" style={{ height: 32, objectFit: 'contain' }} />
+          <div className="brand-sub" style={{ paddingLeft: 12, borderLeft: '1px solid var(--hairline)' }}>Agent Onboarding</div>
         </div>
         <div className="topbar-spacer" />
+        <button onClick={resetProgress} style={{ marginRight: 16, background: 'var(--red)', color: 'white', padding: '6px 12px', borderRadius: 4, fontWeight: 'bold', fontSize: 12, border: 'none', cursor: 'pointer' }}>Start Over (Test)</button>
         <div className="style-switcher" title="Switch 2026 design style">
           <span className="style-switcher-label">Style</span>
           <select value={style} onChange={(e) => setStyle(e.target.value)}>
@@ -315,14 +376,14 @@ function Topbar({ agent, route, goTo, style, setStyle }) {
 
 function Footer({ goTo, resetProgress }) {
   return (
-    <footer style={{ marginTop: 64, borderTop: '1px solid var(--hairline)', background: 'var(--ink)', color: 'var(--cream)' }}>
+    <footer style={{ marginTop: 64, borderTop: '1px solid var(--hairline)', background: '#1A1815', color: '#FBE8B7' }}>
       <div className="container" style={{ padding: '64px 32px 48px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: 48 }}>
           <div>
-            <div style={{ fontFamily: 'var(--serif)', fontSize: 32, marginBottom: 12 }}>
-              Myers <em style={{ color: 'var(--cream-deep)' }}>Home Buyers</em>
+            <div style={{ fontFamily: 'var(--serif)', fontSize: 32, marginBottom: 12, color: '#FBE8B7' }}>
+              Myers <em style={{ color: '#F5D782' }}>Home Buyers</em>
             </div>
-            <div style={{ fontSize: 13, color: 'var(--cream-deep)', maxWidth: 320, lineHeight: 1.6 }}>
+            <div style={{ fontSize: 13, color: '#F5D782', maxWidth: 320, lineHeight: 1.6 }}>
               16479 N. Dallas Pkwy, Suite, Addison, TX 75001<br/>
               Brokerage License #9005311-BB
             </div>
@@ -339,14 +400,15 @@ function Footer({ goTo, resetProgress }) {
             <a href="#">ForeWarn</a>
           </FooterCol>
           <FooterCol title="Marketing">
-            <a href="#">Brand kit</a>
+            <a href="https://drive.google.com/drive/u/0/folders/11Wo44zwGzuZUL18kfltUjxN-DAuqtiPl" target="_blank" rel="noopener">Brand Guidelines</a>
+            <a href="https://drive.google.com/drive/u/0/folders/11Wo44zwGzuZUL18kfltUjxN-DAuqtiPl" target="_blank" rel="noopener">Logos</a>
             <a href="#">Carrot.com</a>
-            <a href="#">Marketing Drive</a>
+            <a href="https://drive.google.com/drive/u/0/folders/11Wo44zwGzuZUL18kfltUjxN-DAuqtiPl" target="_blank" rel="noopener">Marketing Drive</a>
           </FooterCol>
         </div>
-        <div style={{ marginTop: 56, paddingTop: 24, borderTop: '1px solid rgba(251,232,183,.15)', display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'var(--cream-deep)' }}>
+        <div style={{ marginTop: 56, paddingTop: 24, borderTop: '1px solid rgba(251,232,183,.15)', display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#F5D782' }}>
           <span>© 2026 Myers Home Buyers · Where Agents Become Investors</span>
-          <span><a href="#" onClick={(e) => { e.preventDefault(); resetProgress(); }} style={{ color: 'var(--cream-deep)' }}>Reset progress</a></span>
+          <span><a href="#" onClick={(e) => { e.preventDefault(); resetProgress(); }} style={{ color: '#F5D782' }}>Reset progress</a></span>
         </div>
       </div>
     </footer>
@@ -356,10 +418,10 @@ function Footer({ goTo, resetProgress }) {
 function FooterCol({ title, children }) {
   return (
     <div>
-      <div className="kicker" style={{ color: 'var(--cream-deep)', marginBottom: 14 }}>{title}</div>
+      <div className="kicker" style={{ color: '#F5D782', marginBottom: 14 }}>{title}</div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: 13 }}>
         {React.Children.map(children, (child, i) => (
-          <span key={i} style={{ color: 'var(--cream)', opacity: .85 }}>{child}</span>
+          <span key={i} style={{ color: '#FBE8B7', opacity: .85 }}>{child}</span>
         ))}
       </div>
     </div>
