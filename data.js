@@ -51,7 +51,7 @@ window.MYERS_DATA = {
       tasks: [
         { id: 'gmail-setup', title: 'Gmail Account Setup', desc: 'Set up your Myers email account. You will receive login credentials separately.', icon: 'mail', accent: '#D93025',
           group: 'Email & Communications' },
-        { id: 'zoho-crm', title: 'Zoho CRM & Resource Hub', desc: 'Your lead management and deal pipeline system. Log in to Zoho to access your CRM dashboard, submit offers, and manage your deal pipeline.', icon: 'folder', accent: '#2E5C8A',
+        { id: 'zoho-crm', title: 'Zoho CRM', desc: 'Your lead management and deal pipeline system. Log in to Zoho to access your CRM dashboard, submit offers, and manage your deal pipeline.', icon: 'folder', accent: '#2E5C8A',
           links: [{ label: 'Sign In to Zoho', href: 'https://accounts.zoho.com/signin' }], group: 'Deal Management' },
         { id: 'zip-forms', title: 'Zip Forms', desc: '1. Log in to NTREIS. 2. Scroll to the bottom and click "ZipForms". 3. Find your NRDS # in the Member Portal. 4. Call ZipForms Support to activate: 1-800-874-6500. Note: You need your NRDS number to activate your account.', icon: 'doc', accent: '#4F7A3A',
           links: [{ label: 'NTREIS Portal', href: 'http://ntreis.clareity.net' }], group: 'Deal Management' },
@@ -64,10 +64,10 @@ window.MYERS_DATA = {
       subtitle: 'Stay connected and protected',
       description: 'Set up your safety tools, team communication, and shared resources so you never miss a beat.',
       tasks: [
+        { id: 'slack', title: 'Join Slack', desc: 'Download the Slack app on laptop and mobile. Join #myers and #askmeanything2026. In Slack, check the "Resource Hub" channel for offer submission links and key team resources. Mandatory: Add your phone number to your profile and turn ON notifications!', icon: 'chat', accent: '#6B4E8E',
+          links: [{ label: 'Open Slack', href: 'https://myershomebuyers.slack.com' }], image: 'assets/pptx/image15.png' },
         { id: 'forewarn', title: 'ForeWarn', desc: 'Log in to NTREIS to access the portal. Scroll to the bottom and click "ForeWarn." Sign up online or call (855) 518-0897 (you will need your License # and Email Address). ⚠️ DISCLAIMER: Do not exceed 200 searches per day or your account will be banned.', icon: 'shield', accent: '#B0432A',
           links: [{ label: 'NTREIS Portal', href: 'http://ntreis.clareity.net' }] },
-        { id: 'slack', title: 'Join Slack', desc: 'Download the Slack app on laptop and mobile. Join #myers and #askmeanything2026. Mandatory: Add your phone number to your profile and turn ON notifications!', icon: 'chat', accent: '#6B4E8E',
-          links: [{ label: 'Open Slack', href: 'https://myershomebuyers.slack.com' }], image: 'assets/pptx/image15.png' },
         { id: 'shared-drives', title: 'Shared Drives & Calendars', desc: 'Access Myers Deals, Agent Resources, and Marketing Drive. Subscribe to the Myers DFW Showings Calendar to stay updated on all property showings.', icon: 'calendar', accent: '#C9941F',
           links: [{ label: 'Myers Deals', href: 'https://drive.google.com/drive/folders/0AAKvoVvYPEK-Uk9PVA' }, { label: 'Agent Resources', href: 'https://drive.google.com/drive/folders/0ADyroRsH9CCZUk9PVA' }, { label: 'Marketing Drive', href: 'https://drive.google.com/drive/u/0/folders/11Wo44zwGzuZUL18kfltUjxN-DAuqtiPl' }] },
       ],
