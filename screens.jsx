@@ -525,10 +525,11 @@ function ProfileStep({ agent, updateAgent, progress, toggleTask }) {
         <div className="eyebrow" style={{ marginBottom: 10 }}>Your details</div>
         <ProfileInput
           label="Full name"
-          value={agent.fullName}
+          value={(agent.fullName || '').replace(/[\n\r]/g, '')}
           onChange={(v) => {
-            const parts = v.split(' ');
-            updateAgent({ fullName: v, first: parts[0] || '', last: parts.slice(1).join(' ') || '' });
+            const clean = v.replace(/[\n\r]/g, '').replace(/\s+/g, ' ');
+            const parts = clean.split(' ');
+            updateAgent({ fullName: clean, first: parts[0] || '', last: parts.slice(1).join(' ') || '' });
           }}
         />
         <ProfileSelect label="Title / role" value={agent.title} options={['Investment Consultant', 'Acquisitions Specialist']} onChange={(v) => updateAgent({ title: v })} />
