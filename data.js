@@ -49,13 +49,13 @@ window.MYERS_DATA = {
       subtitle: 'Get connected',
       description: 'Set up your email, shared drives, calendars, and team communication so you never miss a beat.',
       tasks: [
-        { id: 'gmail-setup', title: 'Gmail Account Setup', desc: 'Set up your Myers email account. You will receive login credentials separately.', icon: 'mail', accent: '#D93025' },
+        { id: 'gmail-setup', title: 'Activate Gmail', desc: 'Set up your Myers email account. You will receive login credentials separately.', icon: 'mail', accent: '#D93025' },
+        { id: 'calendars', title: 'Join Shared Calendars', desc: 'Subscribe to the Company Calendar and the Myers DFW Showings Calendar to stay updated on all events and property showings.', icon: 'calendar', accent: '#2E5C8A',
+          links: [{ label: 'Company Calendar', href: 'https://calendar.google.com/calendar/u/0?cid=Y183cG8ydWpwdDJwM2JqNm5sczYzNXE4MW9vZ0Bncm91cC5jYWxlbmRhci5nb29nbGUuY29t' }, { label: 'Myers DFW Showings', href: 'https://calendar.google.com/calendar/u/0?cid=am9zaGRlc2hvbmcuY29tX2QwMXNzMmdwZ2VlZXQxZ3F1Y2pkZDJnNmhvQGdyb3VwLmNhbGVuZGFyLmdvb2dsZS5jb20' }] },
+        { id: 'shared-drives', title: 'Join Shared Drives', desc: 'Access Myers Deals, Agent Resources, and Marketing Drive.', icon: 'folder', accent: '#C9941F',
+          links: [{ label: 'Myers Deals', href: 'https://drive.google.com/drive/folders/0AAKvoVvYPEK-Uk9PVA' }, { label: 'Agent Resources', href: 'https://drive.google.com/drive/folders/0ADyroRsH9CCZUk9PVA' }, { label: 'Marketing Drive', href: 'https://drive.google.com/drive/u/0/folders/11Wo44zwGzuZUL18kfltUjxN-DAuqtiPl' }] },
         { id: 'slack', title: 'Join Slack', desc: 'Download the Slack app on laptop and mobile. Join #myers and #askmeanything2026. In Slack, check the "Resource Hub" channel for offer submission links and key team resources. Mandatory: Add your phone number to your profile and turn ON notifications!', icon: 'chat', accent: '#6B4E8E',
           links: [{ label: 'Open Slack', href: 'https://myershomebuyers.slack.com' }], image: 'assets/pptx/image15.png' },
-        { id: 'calendars', title: 'Calendars', desc: 'Subscribe to the Company Calendar and the Myers DFW Showings Calendar to stay updated on all events and property showings.', icon: 'calendar', accent: '#2E5C8A',
-          links: [{ label: 'Company Calendar', href: 'https://calendar.google.com/calendar/u/0?cid=Y183cG8ydWpwdDJwM2JqNm5sczYzNXE4MW9vZ0Bncm91cC5jYWxlbmRhci5nb29nbGUuY29t' }, { label: 'Myers DFW Showings', href: 'https://calendar.google.com/calendar/u/0?cid=am9zaGRlc2hvbmcuY29tX2QwMXNzMmdwZ2VlZXQxZ3F1Y2pkZDJnNmhvQGdyb3VwLmNhbGVuZGFyLmdvb2dsZS5jb20' }] },
-        { id: 'shared-drives', title: 'Shared Drives', desc: 'Access Myers Deals, Agent Resources, and Marketing Drive.', icon: 'folder', accent: '#C9941F',
-          links: [{ label: 'Myers Deals', href: 'https://drive.google.com/drive/folders/0AAKvoVvYPEK-Uk9PVA' }, { label: 'Agent Resources', href: 'https://drive.google.com/drive/folders/0ADyroRsH9CCZUk9PVA' }, { label: 'Marketing Drive', href: 'https://drive.google.com/drive/u/0/folders/11Wo44zwGzuZUL18kfltUjxN-DAuqtiPl' }] },
       ],
     },
     {
