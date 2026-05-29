@@ -16,38 +16,40 @@ const ONBOARD_SHEET    = 'New Agent Onboarding';
 const ONBOARD_HDR_ROW  = 5;
 const ONBOARD_DATA_ROW = 6;
 
-// Agent info columns
-const COL_NAME     = 1;   // A
-const COL_PHONE    = 2;   // B
-const COL_EMAIL    = 3;   // C
-const COL_NOTES    = 4;   // D
-const COL_LICENSE  = 5;   // E
-const COL_REFER    = 6;   // F
-const COL_TITLE    = 7;   // G - Title / Role
-const COL_START    = 9;   // I - Start Date
+// Agent info columns (matching actual sheet)
+const COL_NAME     = 1;   // A - Name
+const COL_TITLE    = 2;   // B - Title
+const COL_PHONE    = 3;   // C - Phone Number
+const COL_EMAIL    = 4;   // D - Email
+const COL_NOTES    = 5;   // E - Notes
+const COL_LICENSE  = 6;   // F - License #
+const COL_REFER    = 7;   // G - Referring Agent
+const COL_START    = 10;  // J - Start Date Recorded
 
-// Task → column mappings
+// Task → column mappings (matching actual sheet headers)
 const TASK_MAP = {
-  '_paperwork_all':      10,  // J  - ICA / W9 / CC Auth
-  'zoho-crm':            15,  // O  - Zoho Account Created
-  'slack':               17,  // Q  - Slack Account
-  'slack_resources':     28,  // AB - Slack Resources + Add to Group
-  'google-cal':          21,  // U  - Add to Company Calendar
-  'welcome-post':        25,  // Y  - Welcome to Myers Post
-  'email-sig':           29,  // AC - Gmail + Gmail Signature
-  'cards':               30,  // AD - Marketing SetUp: Business Cards + Flyers
-  'deal-walkthrough':    26,  // Z  - Zoho: Deals & MVP
-  'deal-walkthrough-2':  27,  // AA - Zoho + Gmail Integration
-  'first-meeting':       19,  // S  - Add To Team Roster
-  'cc-auth':             12,  // L  - Completed Payment Form
+  '_paperwork_all':      11,  // K  - ICA / W9 / CC Auth
+  'gmail-setup':         15,  // O  - Gmail Activated
+  'zoho-crm':            16,  // P  - Zoho Activated
+  'slack':               17,  // Q  - Slack Activated
+  'first-meeting':       20,  // T  - Add To Team Roster
+  'calendars':           22,  // V  - Add to Company Calendar + Showings Calendar
+  'welcome-post':        26,  // Z  - Welcome to Myers Post
+  'deal-walkthrough':    27,  // AA - Zoho: Deals & MVP
+  'deal-walkthrough-2':  28,  // AB - Zoho + Gmail Integration
+  'slack_resources':     29,  // AC - Slack Resources + Add to Group
+  'email-sig':           30,  // AD - Gmail + Gmail Signature
+  'cards':               31,  // AE - Marketing SetUp: Business Cards + Flyers
+  'cc-auth':             11,  // K  - same as paperwork column
+  'payout-review':       32,  // AF - Payroll
 };
 
-// Marketing selection columns (new — added after existing columns)
-const COL_WELCOME_TEMPLATE = 32;  // AF - Welcome Template choice
-const COL_CARD_STYLE       = 33;  // AG - Business Card style
-const COL_DRIVE_FOLDER     = 34;  // AH - Drive folder link
+// Marketing selection columns (after existing columns)
+const COL_WELCOME_TEMPLATE = 33;  // AG - Welcome Template choice
+const COL_CARD_STYLE       = 34;  // AH - Business Card style
+const COL_DRIVE_FOLDER     = 35;  // AI - Drive folder link
 
-// Paperwork task IDs (all 3 needed to mark column J)
+// Paperwork task IDs (all 3 needed to mark column K)
 const PAPERWORK_IDS = ['sponsorship', 'w9', 'cc-auth'];
 
 // Drive folder name for agent folders
