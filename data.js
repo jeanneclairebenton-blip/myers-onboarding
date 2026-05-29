@@ -98,7 +98,11 @@ window.MYERS_DATA = {
       subtitle: 'How you get paid',
       description: 'Review the commission payout schedules, funding deadlines, and expedited payout options.',
       tasks: [
-        { id: 'payout-review', title: 'Review Payout Policies', desc: 'Read through the commission payout timeline, rules, and expedited payout options.', icon: 'doc', action: 'payout-process' }
+        { id: 'normal-payout', title: 'Normal Commission Payouts', desc: 'Commissions are paid out twice a month: on the 15th and the last day of the month. A transaction must successfully close and fund at least 2 days prior to the payout date to be included in that check.', icon: 'doc', accent: '#C9941F' },
+        { id: 'expedited-payout', title: 'Expedited Payout Option', desc: 'Need your funds faster? You can request to receive your payment the same day or sooner. There is a 1% fee for expedited payouts with a minimum fee of $50. To request: Contact Michael DeMott at mdemott@trelly.com or text (972) 849-7495.', icon: 'sparkle', accent: '#28C840',
+          links: [{ label: 'Email Michael DeMott', href: 'mailto:mdemott@trelly.com' }] },
+        { id: 'revshare-payout', title: 'Rev Share Payouts', desc: 'Rev Share Commissions are paid out strictly on the last day of each month. Please note that there is no expedited payout option available for Rev Share commissions.', icon: 'calendar', accent: '#6B4E8E' },
+        { id: 'payout-review', title: 'Acknowledge Payout Policies', desc: 'Confirm that you have read and understand the commission payout timeline, rules, and expedited payout options.', icon: 'signature', action: 'payout-process' },
       ],
     },
   ],
@@ -122,12 +126,12 @@ window.MYERS_DATA = {
   ],
 
   BUSINESS_CARDS: [
-    { id: 'minimal',  name: 'Minimal',  layout: 1, desc: 'Clean typography. Name top, contact bottom.' },
-    { id: 'centered', name: 'Centered', layout: 2, desc: 'Symmetric. Logo top, name centered.' },
-    { id: 'pattern',  name: 'Pattern',  layout: 3, desc: 'Gold honeycomb wash, distinctive.' },
-    { id: 'split',    name: 'Split',    layout: 4, desc: '40/60 vertical split with logo panel.' },
-    { id: 'tile',     name: 'Tile',     layout: 5, desc: 'Pattern band left, info right.' },
-    { id: 'framed',   name: 'Framed',   layout: 6, desc: 'Hairline border, gold badge.' },
+    { id: 'minimal',  name: 'Minimal',  layout: 1, bg: '#FAF7F0', fg: '#1A1815', accent: '#C9941F' },
+    { id: 'centered', name: 'Centered', layout: 2, bg: '#FAF7F0', fg: '#1A1815', accent: '#C9941F' },
+    { id: 'pattern',  name: 'Pattern',  layout: 3, bg: '#FAF7F0', fg: '#1A1815', accent: '#C9941F' },
+    { id: 'split',    name: 'Split',    layout: 4, bg: '#FAF7F0', fg: '#1A1815', accent: '#C9941F' },
+    { id: 'tile',     name: 'Tile',     layout: 5, bg: '#FAF7F0', fg: '#1A1815', accent: '#C9941F' },
+    { id: 'framed',   name: 'Framed',   layout: 6, bg: '#FAF7F0', fg: '#1A1815', accent: '#C9941F' },
   ],
 
   SOCIAL_KIT: [
