@@ -54,7 +54,7 @@ window.MYERS_DATA = {
         { id: 'zoho-crm', title: 'Zoho CRM & Resource Hub', desc: 'Your lead management and deal pipeline system. In Slack under "Resource Hub", you can find links to submit an offer via Zoho Forms.', icon: 'folder', accent: '#2E5C8A',
           links: [{ label: 'Submit Offer (Zoho Forms)', href: 'https://www.myersbids.com/myershomebuyers/form/PropertyBidsPublic/formperma/UpkCGE9odUcSf8sC6SqciiEMnO7hHPyjrkitLIsMnu0' }], group: 'Deal Management' },
         { id: 'zip-forms', title: 'Zip Forms', desc: '1. Log in to NTREIS. 2. Scroll to the bottom and click "ZipForms". 3. Find your NRDS # in the Member Portal. 4. Call ZipForms Support to activate: 1-800-874-6500. Note: You need your NRDS number to activate your account.', icon: 'doc', accent: '#4F7A3A',
-          links: [{ label: 'NTREIS Portal', href: 'http://ntreis.clareity.net' }, { label: 'Member Portal', href: 'http://portal.metrotex.com/home' }], group: 'Deal Management' },
+          links: [{ label: 'NTREIS Portal', href: 'http://ntreis.clareity.net' }], group: 'Deal Management' },
       ],
     },
     {
