@@ -18,6 +18,16 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "style": "editorial"
 }/*EDITMODE-END*/;
 
+const MILESTONES = {
+  'profile':  'Profile Complete',
+  'paperwork':'Paperwork Signed',
+  'licensing':'License Transferred',
+  'tools':    'Tech Setup Complete',
+  'comms':    'Safety & Comms Ready',
+  'brand':    'Brand Kit Ready',
+  'closing':  'Launch Ready 🚀',
+};
+
 const DEFAULT_AGENT = {
   first: 'Alex',
   last: 'Rivera',

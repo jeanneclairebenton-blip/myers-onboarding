@@ -35,7 +35,7 @@ window.MYERS_DATA = {
       description: 'Move your real estate license to Myers via TREC and get your MLS access set up through MetroTex.',
       tasks: [
         { id: 'trec-transfer', title: 'TREC License Transfer', desc: 'You cannot access MLS until your license is active. Follow the official TREC Step-by-Step Guide. Need help? Call 512.936.3000 or email realportal@trec.texas.gov.', icon: 'key',
-          links: [{ label: 'Realm Portal', href: 'https://realtors.auth0.com/login?state=hKFo2SBXWWs1UmNiWmxnRjRNTkNPTEMteWZRSlMzNy01OVg0dKFupWxvZ2luo3RpZNkgd2tyU3NOM2JvRHZPcUNERExvdThTZ1FvRWRxZUJ3YlejY2lk2SA2ZE5LSTJhcHltR3hCTU94MjBkQnNWcTVoZ1VOSVhieQ&client=6dNKI2apymGxBMOx20dBsVq5hgUNIXby&protocol=oauth2&redirect_uri=https%3A%2F%2Fwww.texasrealestate.com%2Faccount%2Fprocess-login&scope=openid%20profile%20email&response_mode=query&response_type=code&boog=f107280449cb807b5f535cd069bf8e86&nonce=59fc0170753b22eac3f67b8cad5c77b4&code_challenge=0tXf8srjDFMmKUgkx-ovuezDcVCsTf8b80fgepPunhw&code_challenge_method=S256#!/forgotmember' }] },
+          links: [{ label: 'TREC Portal', href: 'https://aca-prod.accela.com/TREC/Default.aspx' }] },
         { id: 'mls-access', title: 'Association / MetroTex / MLS', desc: 'To access MLS, you must join a local Realtor Association that feeds into NTREIS. Register with Collin County Association of Realtors via mymetrotex.com. For registration help, call Collin County Area REALTORS®: (972) 618-3800', icon: 'home',
           links: [{ label: 'Fill Out Form', href: 'https://forms.metrotex.com/97c3ba26-f01e-11ef-9c1d-12264f22cfd5' }] },
         { id: 'supra-access', title: 'Add Supra Key Access', desc: 'Go to portal.metrotex.com/home. Menu → Subscriptions → Subscription Actions → Add New Subscriptions → Supra Key Access', icon: 'key', optional: true,
@@ -45,9 +45,9 @@ window.MYERS_DATA = {
     {
       id: 'tools',
       num: '04',
-      title: '03 to 08: Tech & Tools',
+      title: 'Tech & Tools',
       subtitle: 'Get your systems running',
-      description: 'Access to the platforms you\'ll use daily: CRM, contracts, safety, and communication.',
+      description: 'Set up your email, CRM, and contract platforms so you can start working deals immediately.',
       tasks: [
         { id: 'gmail-setup', title: 'Gmail Account Setup', desc: 'Set up your Myers email account. You will receive login credentials separately.', icon: 'mail', accent: '#D93025',
           group: 'Email & Communications' },
@@ -55,17 +55,26 @@ window.MYERS_DATA = {
           links: [{ label: 'Submit Offer (Zoho Forms)', href: 'https://www.myersbids.com/myershomebuyers/form/PropertyBidsPublic/formperma/UpkCGE9odUcSf8sC6SqciiEMnO7hHPyjrkitLIsMnu0' }], group: 'Deal Management' },
         { id: 'zip-forms', title: 'Zip Forms', desc: '1. Log in to NTREIS. 2. Scroll to the bottom and click "ZipForms". 3. Find your NRDS # in the Member Portal. 4. Call ZipForms Support to activate: 1-800-874-6500. Note: You need your NRDS number to activate your account.', icon: 'doc', accent: '#4F7A3A',
           links: [{ label: 'NTREIS Portal', href: 'http://ntreis.clareity.net' }, { label: 'Member Portal', href: 'http://portal.metrotex.com/home' }], group: 'Deal Management' },
+      ],
+    },
+    {
+      id: 'comms',
+      num: '05',
+      title: 'Safety & Communication',
+      subtitle: 'Stay connected and protected',
+      description: 'Set up your safety tools, team communication, and shared resources so you never miss a beat.',
+      tasks: [
         { id: 'forewarn', title: 'ForeWarn', desc: 'Log in to NTREIS to access the portal. Scroll to the bottom and click "ForeWarn." Sign up online or call (855) 518-0897 (you will need your License # and Email Address). ⚠️ DISCLAIMER: Do not exceed 200 searches per day or your account will be banned.', icon: 'shield', accent: '#B0432A',
-          links: [{ label: 'NTREIS Portal', href: 'http://ntreis.clareity.net' }], group: 'Safety & Comms' },
+          links: [{ label: 'NTREIS Portal', href: 'http://ntreis.clareity.net' }] },
         { id: 'slack', title: 'Join Slack', desc: 'Download the Slack app on laptop and mobile. Join #myers and #askmeanything2026. Mandatory: Add your phone number to your profile and turn ON notifications!', icon: 'chat', accent: '#6B4E8E',
-          links: [{ label: 'Open Slack', href: 'https://myershomebuyers.slack.com' }], group: 'Safety & Comms', image: 'assets/pptx/image15.png' },
+          links: [{ label: 'Open Slack', href: 'https://myershomebuyers.slack.com' }], image: 'assets/pptx/image15.png' },
         { id: 'shared-drives', title: 'Shared Drives & Calendars', desc: 'Access Myers Deals, Agent Resources, and Marketing Drive. Subscribe to the Myers DFW Showings Calendar to stay updated on all property showings.', icon: 'calendar', accent: '#C9941F',
-          links: [{ label: 'Myers Deals', href: 'https://drive.google.com/drive/folders/0AAKvoVvYPEK-Uk9PVA' }, { label: 'Agent Resources', href: 'https://drive.google.com/drive/folders/0ADyroRsH9CCZUk9PVA' }, { label: 'Marketing Drive', href: 'https://drive.google.com/drive/u/0/folders/11Wo44zwGzuZUL18kfltUjxN-DAuqtiPl' }], group: 'Safety & Comms' },
+          links: [{ label: 'Myers Deals', href: 'https://drive.google.com/drive/folders/0AAKvoVvYPEK-Uk9PVA' }, { label: 'Agent Resources', href: 'https://drive.google.com/drive/folders/0ADyroRsH9CCZUk9PVA' }, { label: 'Marketing Drive', href: 'https://drive.google.com/drive/u/0/folders/11Wo44zwGzuZUL18kfltUjxN-DAuqtiPl' }] },
       ],
     },
     {
       id: 'brand',
-      num: '05',
+      num: '06',
       title: 'Marketing & Brand',
       subtitle: 'Build your presence',
       description: 'Launch your professional brand. Create your announcement post, set up your email signature, order business cards, and get your website live.',
@@ -82,8 +91,8 @@ window.MYERS_DATA = {
     },
     {
       id: 'closing',
-      num: '06',
-      title: '09: Payout Process',
+      num: '07',
+      title: 'Payout Process',
       subtitle: 'How you get paid',
       description: 'Review the commission payout schedules, funding deadlines, and expedited payout options.',
       tasks: [

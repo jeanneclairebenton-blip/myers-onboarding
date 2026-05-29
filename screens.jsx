@@ -312,12 +312,12 @@ function TaskBox({ task, checked, onToggle }) {
         <Check checked={checked} onClick={(e) => { e.stopPropagation(); onToggle(); }} />
       </div>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, flexWrap: 'wrap' }}>
-        <div style={{ fontWeight: 700, fontSize: 14, lineHeight: 1.3, textDecoration: checked ? 'line-through' : 'none', textDecorationColor: 'var(--muted)' }}>
+        <div style={{ fontWeight: 700, fontSize: 17, lineHeight: 1.3, textDecoration: checked ? 'line-through' : 'none', textDecorationColor: 'var(--muted)' }}>
           {task.title.replace(/\s*\(optional\)\s*$/i, '')}
         </div>
         {task.optional && <span className="task-opt" style={{ fontSize: 9, fontFamily: 'var(--mono)', color: 'var(--muted)', letterSpacing: '.08em', textTransform: 'uppercase', fontWeight: 700, padding: '2px 6px', background: 'var(--bg-soft)', borderRadius: 4 }}>Optional</span>}
       </div>
-      <div className="task-desc" style={{ flex: 1, fontSize: 12, color: 'var(--muted)', lineHeight: 1.5 }}>{task.desc}</div>
+      <div className="task-desc" style={{ flex: 1, fontSize: 14, color: 'var(--muted)', lineHeight: 1.6 }}>{task.desc}</div>
       {task.image && (
         <>
           <div 
@@ -747,7 +747,7 @@ function BrandIntro({ openMarketing, progress, toggleTask }) {
             </div>
             <div style={{ flex: 1 }}>
               <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 4, lineHeight: 1.3 }}>{task.title}</div>
-              <div style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.5 }}>{task.desc.split('.')[0]}.</div>
+              <div style={{ fontSize: 14, color: 'var(--muted)', lineHeight: 1.6 }}>{task.desc.split('.')[0]}.</div>
             </div>
             <div style={{ color: done ? 'var(--ink)' : 'var(--gold-deep)', fontSize: 11, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase' }}>
               {done ? 'Done ✓' : 'Open →'}
