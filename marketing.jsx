@@ -431,22 +431,10 @@ function CarrotSiteBuilder({ agent, onClose }) {
         </div>
       </div>
 
-      <div style={{ background: 'var(--bg-soft)', padding: 32 }}>
-        <div className="kicker" style={{ marginBottom: 12 }}>Live preview · {siteUrl}</div>
-        <div style={{ background: '#fff', borderRadius: 12, overflow: 'hidden', boxShadow: '0 20px 60px rgba(0,0,0,.15)' }}>
-          {/* Browser chrome */}
-          <div style={{ padding: '10px 14px', background: '#f0ece2', display: 'flex', alignItems: 'center', gap: 12, borderBottom: '1px solid #ddd' }}>
-            <div style={{ display: 'flex', gap: 6 }}>
-              <div style={{ width: 10, height: 10, borderRadius: 99, background: '#ff5f57' }}/>
-              <div style={{ width: 10, height: 10, borderRadius: 99, background: '#febc2e' }}/>
-              <div style={{ width: 10, height: 10, borderRadius: 99, background: '#28c840' }}/>
-            </div>
-            <div style={{ flex: 1, background: '#fff', borderRadius: 6, padding: '5px 12px', fontSize: 11, color: '#666', fontFamily: 'var(--mono)' }}>
-              https://{siteUrl}
-            </div>
-          </div>
-          {/* Page */}
-          <CarrotPagePreview agent={agent} primary={primary} />
+      <div style={{ background: 'var(--bg-soft)', padding: 32, display: 'flex', flexDirection: 'column' }}>
+        <div className="kicker" style={{ marginBottom: 12 }}>Carrot.com · What you get</div>
+        <div style={{ borderRadius: 12, overflow: 'hidden', boxShadow: '0 20px 60px rgba(0,0,0,.15)', flex: 1 }}>
+          <img src="assets/carrot-preview.png" alt="Carrot.com website preview" style={{ display: 'block', width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top' }} />
         </div>
       </div>
     </div>
