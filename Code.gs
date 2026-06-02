@@ -16,8 +16,16 @@ const ONBOARD_SHEET    = 'New Agent Onboarding';
 const ONBOARD_HDR_ROW  = 5;
 const ONBOARD_DATA_ROW = 6;
 
+// Wednesday Weekly Feedback sheet config
+const WEDNESDAY_SHEET    = 'Wednesday Weekly Feedback';
+const WED_DATA_ROW       = 9;   // First data row (row 8 is headers)
+const WED_COL_NAME       = 2;   // B - Name
+const WED_COL_PHONE      = 3;   // C - Phone
+const WED_COL_EMAIL      = 4;   // D - Email
+const WED_COL_STATUS     = 5;   // E - Status
+
 // Admin email — receives a report every time an agent submits
-const ADMIN_EMAIL = 'jeanne@myershomebuyers.com'; // ← Change this to your email
+const ADMIN_EMAIL = 'jbenton@myershomebuyers.com';
 
 // Agent info columns (matching actual sheet)
 const COL_NAME     = 1;   // A - Name
@@ -243,11 +251,29 @@ function saveBase64File(folder, base64Data, fileName, prefix) {
 function markTask(sheet, rowIdx, taskId, completed, allProgress) {
   var mark = completed ? '✓' : '';
   
-  // Handle paperwork tasks specially (column J needs all 3)
+  // Handle paperwork tasks specially (column K needs all 3)
   if (PAPERWORK_IDS.indexOf(taskId) !== -1) {
     var allPaperwork = PAPERWORK_IDS.every(function(id) { return allProgress[id]; });
     if (allPaperwork && TASK_MAP['_paperwork_all']) {
       sheet.getRange(rowIdx, TASK_MAP['_paperwork_all']).setValue('✓');
+      
+      // ── All paperwork done → add to Wednesday sheet + create calendar task ──
+      var agentName = sheet.getRange(rowIdx, COL_NAME).getValue();
+      var agentPhone = sheet.getRange(rowIdx, COL_PHONE).getValue();
+      var agentEmail = sheet.getRange(rowIdx, COL_EMAIL).getValue();
+      
+      try {
+        addToWednesdaySheet(agentName, agentPhone, agentEmail);
+      } catch (wedErr) {
+        Logger.log('Wednesday sheet error: ' + wedErr.toString());
+      }
+      
+      try {
+        createRealmCalendarTask(agentName);
+      } catch (calErr) {
+        Logger.log('Calendar task error: ' + calErr.toString());
+      }
+      
     } else if (TASK_MAP['_paperwork_all']) {
       var count = PAPERWORK_IDS.filter(function(id) { return allProgress[id]; }).length;
       if (count > 0) {
@@ -311,6 +337,71 @@ function jsonResponse(obj) {
   return ContentService
     .createTextOutput(JSON.stringify(obj))
     .setMimeType(ContentService.MimeType.JSON);
+}
+
+
+// ── Add agent to Wednesday Weekly Feedback sheet ────────────────────────────
+function addToWednesdaySheet(name, phone, email) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var wedSheet = ss.getSheetByName(WEDNESDAY_SHEET);
+  if (!wedSheet) {
+    Logger.log('Wednesday sheet not found: ' + WEDNESDAY_SHEET);
+    return;
+  }
+  
+  // Check if agent already exists (by email in column D)
+  var emailLower = (email || '').trim().toLowerCase();
+  if (emailLower) {
+    var lastRow = wedSheet.getLastRow();
+    if (lastRow >= WED_DATA_ROW) {
+      var emails = wedSheet.getRange(WED_DATA_ROW, WED_COL_EMAIL, lastRow - WED_DATA_ROW + 1, 1).getValues();
+      for (var i = 0; i < emails.length; i++) {
+        if (emails[i][0] && emails[i][0].toString().trim().toLowerCase() === emailLower) {
+          Logger.log('Agent already in Wednesday sheet: ' + email);
+          return; // Already exists, skip
+        }
+      }
+    }
+  }
+  
+  // Find next empty row
+  var newRow = findNextEmptyRow(wedSheet, WED_COL_NAME, WED_DATA_ROW);
+  
+  wedSheet.getRange(newRow, WED_COL_NAME).setValue(name || '');
+  wedSheet.getRange(newRow, WED_COL_PHONE).setValue(phone || '');
+  wedSheet.getRange(newRow, WED_COL_EMAIL).setValue(email || '');
+  wedSheet.getRange(newRow, WED_COL_STATUS).setValue('New');
+  
+  Logger.log('Added to Wednesday sheet: ' + name + ' at row ' + newRow);
+}
+
+
+// ── Create calendar task for Realm + association email ──────────────────────
+function createRealmCalendarTask(agentName) {
+  // Create an all-day event for tomorrow
+  var tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  tomorrow.setHours(9, 0, 0, 0); // 9 AM
+  
+  var endTime = new Date(tomorrow);
+  endTime.setHours(9, 30, 0, 0); // 9:30 AM
+  
+  var title = 'Add ' + agentName + ' to Realm and send email with association info';
+  var description = 'New agent ' + agentName + ' has completed all paperwork (ICA, W-9, CC Auth).\n\n'
+    + 'TODO:\n'
+    + '1. Add ' + agentName + ' to REALM\n'
+    + '2. Send email with association info\n\n'
+    + 'Auto-created by Myers Onboarding System';
+  
+  var calendar = CalendarApp.getDefaultCalendar();
+  var event = calendar.createEvent(title, tomorrow, endTime, {
+    description: description,
+  });
+  
+  // Add a popup reminder 30 minutes before
+  event.addPopupReminder(30);
+  
+  Logger.log('Calendar task created for: ' + agentName + ' on ' + tomorrow.toDateString());
 }
 
 
