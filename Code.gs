@@ -16,6 +16,9 @@ const ONBOARD_SHEET    = 'New Agent Onboarding';
 const ONBOARD_HDR_ROW  = 5;
 const ONBOARD_DATA_ROW = 6;
 
+// Admin email — receives a report every time an agent submits
+const ADMIN_EMAIL = 'jeanne@myershomebuyers.com'; // ← Change this to your email
+
 // Agent info columns (matching actual sheet)
 const COL_NAME     = 1;   // A - Name
 const COL_TITLE    = 2;   // B - Title
@@ -123,6 +126,13 @@ function doPost(e) {
         if (folderUrl) {
           sheet.getRange(rowIdx, COL_DRIVE_FOLDER).setValue(folderUrl);
         }
+      }
+      
+      // Send email report to admin
+      try {
+        sendEmailReport(agent, allProgress, data.marketing || {});
+      } catch (emailErr) {
+        Logger.log('Email report error: ' + emailErr.toString());
       }
     }
     
@@ -301,4 +311,115 @@ function jsonResponse(obj) {
   return ContentService
     .createTextOutput(JSON.stringify(obj))
     .setMimeType(ContentService.MimeType.JSON);
+}
+
+
+// ── Email Report ────────────────────────────────────────────────────────────
+function sendEmailReport(agent, allProgress, marketing) {
+  if (!ADMIN_EMAIL) return;
+  
+  var agentName = agent.fullName || (agent.first + ' ' + agent.last) || 'Unknown';
+  var subject = '📋 New Onboarding Submission: ' + agentName;
+  
+  // Build task status lists
+  var allTasks = [
+    { id: 'sponsorship', label: 'Sponsorship Agreement (ICA)' },
+    { id: 'w9', label: 'W-9 Form' },
+    { id: 'cc-auth', label: 'Credit Card Authorization' },
+    { id: 'license-transfer', label: 'License Transfer to TREC' },
+    { id: 'gmail-setup', label: 'Gmail Activated' },
+    { id: 'calendars', label: 'Joined Shared Calendars' },
+    { id: 'shared-drives', label: 'Joined Shared Drives' },
+    { id: 'slack', label: 'Joined Slack' },
+    { id: 'zoho-crm', label: 'Zoho CRM Activated' },
+    { id: 'zip-forms', label: 'Zip Forms Setup' },
+    { id: 'forewarn', label: 'ForeWarn Setup' },
+    { id: 'brand-guidelines', label: 'Brand Guidelines Reviewed' },
+    { id: 'welcome-post', label: 'Welcome Announcement Created' },
+    { id: 'email-sig', label: 'Email Signature Setup' },
+    { id: 'cards', label: 'Business Cards Designed' },
+    { id: 'website', label: 'Carrot Website Requested' },
+    { id: 'social-kit', label: 'Social Brand Kit Downloaded' },
+    { id: 'normal-payout', label: 'Normal Payout Policy Reviewed' },
+    { id: 'expedited-payout', label: 'Expedited Payout Policy Reviewed' },
+    { id: 'revshare-payout', label: 'Rev Share Policy Reviewed' },
+    { id: 'payout-review', label: 'Payout Policies Acknowledged' },
+  ];
+  
+  var completedHtml = '';
+  var incompleteHtml = '';
+  var completedCount = 0;
+  
+  for (var i = 0; i < allTasks.length; i++) {
+    var t = allTasks[i];
+    if (allProgress[t.id]) {
+      completedHtml += '<li style="color:#2d6a2d;padding:4px 0;">✅ ' + t.label + '</li>';
+      completedCount++;
+    } else {
+      incompleteHtml += '<li style="color:#999;padding:4px 0;">⬜ ' + t.label + '</li>';
+    }
+  }
+  
+  var totalTasks = allTasks.length;
+  var pct = Math.round((completedCount / totalTasks) * 100);
+  
+  // Marketing selections
+  var marketingHtml = '';
+  if (marketing.welcomeTemplate) {
+    marketingHtml += '<tr><td style="padding:8px 12px;font-weight:600;color:#666;">Welcome Template</td><td style="padding:8px 12px;">' + marketing.welcomeTemplate + '</td></tr>';
+  }
+  if (marketing.cardStyle) {
+    marketingHtml += '<tr><td style="padding:8px 12px;font-weight:600;color:#666;">Card Style</td><td style="padding:8px 12px;">' + marketing.cardStyle + '</td></tr>';
+  }
+  
+  var html = ''
+    + '<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#fff;">'
+    + '<div style="background:#C9941F;color:#fff;padding:24px 32px;border-radius:8px 8px 0 0;">'
+    + '<h1 style="margin:0;font-size:22px;">🏠 Myers Agent Onboarding Report</h1>'
+    + '<p style="margin:8px 0 0;opacity:0.9;">New submission received ' + new Date().toLocaleDateString() + '</p>'
+    + '</div>'
+    
+    + '<div style="padding:24px 32px;border:1px solid #e0e0e0;border-top:none;">'
+    
+    // Agent Info
+    + '<h2 style="font-size:16px;color:#C9941F;border-bottom:2px solid #f0e6c8;padding-bottom:8px;">Agent Information</h2>'
+    + '<table style="width:100%;border-collapse:collapse;margin-bottom:24px;">'
+    + '<tr><td style="padding:8px 12px;font-weight:600;color:#666;width:140px;">Name</td><td style="padding:8px 12px;">' + agentName + '</td></tr>'
+    + '<tr style="background:#faf7f0;"><td style="padding:8px 12px;font-weight:600;color:#666;">Email</td><td style="padding:8px 12px;">' + (agent.email || 'Not provided') + '</td></tr>'
+    + '<tr><td style="padding:8px 12px;font-weight:600;color:#666;">Phone</td><td style="padding:8px 12px;">' + (agent.phone || 'Not provided') + '</td></tr>'
+    + '<tr style="background:#faf7f0;"><td style="padding:8px 12px;font-weight:600;color:#666;">Title</td><td style="padding:8px 12px;">' + (agent.title || 'Not provided') + '</td></tr>'
+    + '<tr><td style="padding:8px 12px;font-weight:600;color:#666;">License #</td><td style="padding:8px 12px;">' + (agent.license || 'Not provided') + '</td></tr>'
+    + '</table>'
+    
+    // Progress Bar
+    + '<h2 style="font-size:16px;color:#C9941F;border-bottom:2px solid #f0e6c8;padding-bottom:8px;">Progress: ' + completedCount + '/' + totalTasks + ' (' + pct + '%)</h2>'
+    + '<div style="background:#e0e0e0;border-radius:8px;height:20px;margin-bottom:16px;overflow:hidden;">'
+    + '<div style="background:#C9941F;height:100%;width:' + pct + '%;border-radius:8px;"></div>'
+    + '</div>'
+    
+    // Completed Tasks
+    + '<h3 style="font-size:14px;color:#2d6a2d;">✅ Completed (' + completedCount + ')</h3>'
+    + '<ul style="list-style:none;padding:0;margin:0 0 16px;">' + completedHtml + '</ul>'
+    
+    // Incomplete Tasks
+    + '<h3 style="font-size:14px;color:#999;">⬜ Not Yet Completed (' + (totalTasks - completedCount) + ')</h3>'
+    + '<ul style="list-style:none;padding:0;margin:0 0 16px;">' + incompleteHtml + '</ul>'
+    
+    // Marketing Selections
+    + (marketingHtml ? '<h2 style="font-size:16px;color:#C9941F;border-bottom:2px solid #f0e6c8;padding-bottom:8px;">Marketing Selections</h2>'
+    + '<table style="width:100%;border-collapse:collapse;margin-bottom:24px;">' + marketingHtml + '</table>' : '')
+    
+    + '<div style="margin-top:24px;padding:16px;background:#faf7f0;border-radius:8px;text-align:center;color:#666;font-size:13px;">'
+    + 'This report was auto-generated by the Myers Onboarding System'
+    + '</div>'
+    
+    + '</div></div>';
+  
+  MailApp.sendEmail({
+    to: ADMIN_EMAIL,
+    subject: subject,
+    htmlBody: html,
+  });
+  
+  Logger.log('Email report sent for: ' + agentName);
 }
