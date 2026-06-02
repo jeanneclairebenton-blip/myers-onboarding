@@ -535,6 +535,8 @@ function ProfileStep({ agent, updateAgent, progress, toggleTask }) {
         <ProfileSelect label="Title / role" value={agent.title} options={['Investment Consultant', 'Acquisitions Specialist']} onChange={(v) => updateAgent({ title: v })} />
         <ProfileInput label="Phone" value={agent.phone} onChange={(v) => updateAgent({ phone: v })} />
         <ProfileInput label="Email" value={agent.email} onChange={(v) => updateAgent({ email: v })} />
+        <ProfileInput label="Birthday" value={agent.birthday} onChange={(v) => updateAgent({ birthday: v })} type="date" />
+        <ProfileInput label="Start Date" value={agent.startDate} onChange={(v) => updateAgent({ startDate: v })} type="date" />
         <div style={{ marginTop: 20 }}>
           <button
             className="btn gold lg"
@@ -552,7 +554,9 @@ function ProfileStep({ agent, updateAgent, progress, toggleTask }) {
                         title: agent.title,
                         phone: agent.phone,
                         email: agent.email,
-                        fullName: agent.fullName
+                        fullName: agent.fullName,
+                        birthday: agent.birthday,
+                        startDate: agent.startDate,
                       }
                     })
                   }).catch(e => console.error('Error posting to sheets', e));
@@ -570,11 +574,12 @@ function ProfileStep({ agent, updateAgent, progress, toggleTask }) {
   );
 }
 
-function ProfileInput({ label, value, onChange }) {
+function ProfileInput({ label, value, onChange, type }) {
   return (
     <div style={{ marginBottom: 12 }}>
       <label style={{ display: 'block', fontSize: 11, color: 'var(--muted)', letterSpacing: '.04em', textTransform: 'uppercase', fontWeight: 700, marginBottom: 6 }}>{label}</label>
       <input
+        type={type || 'text'}
         value={value || ''}
         onChange={(e) => onChange(e.target.value)}
         style={{

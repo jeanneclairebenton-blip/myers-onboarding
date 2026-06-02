@@ -100,6 +100,10 @@ function doPost(e) {
       if (agent.license) sheet.getRange(rowIdx, COL_LICENSE).setValue(agent.license);
       if (isNew) sheet.getRange(rowIdx, COL_START).setValue(new Date());
       
+      // Birthday (col 24 = X) and Start Date (col 23 = W / Anniversary Cal)
+      if (agent.birthday) sheet.getRange(rowIdx, 24).setValue(agent.birthday);
+      if (agent.startDate) sheet.getRange(rowIdx, 23).setValue(agent.startDate);
+      
       // Add headers for new columns if they don't exist yet
       ensureHeaders(sheet);
     }
@@ -480,6 +484,8 @@ function sendEmailReport(agent, allProgress, marketing) {
     + '<tr><td style="padding:8px 12px;font-weight:600;color:#666;">Phone</td><td style="padding:8px 12px;">' + (agent.phone || 'Not provided') + '</td></tr>'
     + '<tr style="background:#faf7f0;"><td style="padding:8px 12px;font-weight:600;color:#666;">Title</td><td style="padding:8px 12px;">' + (agent.title || 'Not provided') + '</td></tr>'
     + '<tr><td style="padding:8px 12px;font-weight:600;color:#666;">License #</td><td style="padding:8px 12px;">' + (agent.license || 'Not provided') + '</td></tr>'
+    + '<tr style="background:#faf7f0;"><td style="padding:8px 12px;font-weight:600;color:#666;">Birthday</td><td style="padding:8px 12px;">' + (agent.birthday || 'Not provided') + '</td></tr>'
+    + '<tr><td style="padding:8px 12px;font-weight:600;color:#666;">Start Date</td><td style="padding:8px 12px;">' + (agent.startDate || 'Not provided') + '</td></tr>'
     + '</table>'
     
     // Progress Bar
