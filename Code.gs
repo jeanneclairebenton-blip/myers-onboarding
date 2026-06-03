@@ -39,20 +39,35 @@ const COL_START    = 10;  // J - Start Date Recorded
 
 // Task → column mappings (matching actual sheet headers — Master_Tracker (2))
 const TASK_MAP = {
+  // Existing columns
   '_paperwork_all':      11,  // K  - ICA / W9 / CC Auth
   'gmail-setup':         14,  // N  - Gmail Activated
   'zoho-crm':            15,  // O  - Zoho Activated
   'slack':               16,  // P  - Slack Activated
   'first-meeting':       20,  // T  - Add To Team Roster
-  'calendars':           22,  // V  - Add to Company Calendar + Showings Calendar
   'welcome-post':        26,  // Z  - Welcome to Myers Post
   'deal-walkthrough':    27,  // AA - Zoho: Deals & MVP
   'deal-walkthrough-2':  28,  // AB - Zoho + Gmail Integration
   'slack_resources':     29,  // AC - Slack Resources + Add to Group
-  'email-sig':           30,  // AD - Gmail + Gmail Signature
   'cards':               31,  // AE - Marketing SetUp: Business Cards + Flyers
   'cc-auth':             11,  // K  - same as paperwork column
   'payout-review':       32,  // AF - Payroll
+  
+  // New columns (AJ-AW) — all agent checklist tasks
+  'trec-transfer':       36,  // AJ - TREC License Transfer
+  'mls-access':          37,  // AK - Association / MetroTex / MLS
+  'supra-access':        38,  // AL - Supra Key Access
+  'calendars':           39,  // AM - Joined Shared Calendars
+  'shared-drives':       40,  // AN - Joined Shared Drives
+  'zip-forms':           41,  // AO - Zip Forms Activated
+  'forewarn':            42,  // AP - ForeWarn Activated
+  'brand-guidelines':    43,  // AQ - Brand Guidelines Reviewed
+  'email-sig':           44,  // AR - Email Signature Setup
+  'website':             45,  // AS - Carrot Website Requested
+  'social-kit':          46,  // AT - Social Brand Kit
+  'normal-payout':       47,  // AU - Normal Payout Reviewed
+  'expedited-payout':    48,  // AV - Expedited Payout Reviewed
+  'revshare-payout':     49,  // AW - Rev Share Reviewed
 };
 
 // Birthday and Anniversary columns
