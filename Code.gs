@@ -101,7 +101,15 @@ function doPost(e) {
       if (isNew) sheet.getRange(rowIdx, COL_START).setValue(new Date());
       
       // Birthday (col 24 = X) and Start Date (col 23 = W / Anniversary Cal)
-      if (agent.birthday) sheet.getRange(rowIdx, 24).setValue(agent.birthday);
+      if (agent.birthday) {
+        sheet.getRange(rowIdx, 24).setValue(agent.birthday);
+        // Auto-add birthday as recurring event on your calendar
+        try {
+          addBirthdayToCalendar(agent.fullName || '', agent.birthday);
+        } catch (bdayErr) {
+          Logger.log('Birthday calendar error: ' + bdayErr.toString());
+        }
+      }
       if (agent.startDate) sheet.getRange(rowIdx, 23).setValue(agent.startDate);
       
       // Add headers for new columns if they don't exist yet
@@ -261,21 +269,23 @@ function markTask(sheet, rowIdx, taskId, completed, allProgress) {
     if (allPaperwork && TASK_MAP['_paperwork_all']) {
       sheet.getRange(rowIdx, TASK_MAP['_paperwork_all']).setValue('✓');
       
-      // ── All paperwork done → add to Wednesday sheet + create calendar task ──
+      // ── All paperwork done → trigger all admin tasks ──
       var agentName = sheet.getRange(rowIdx, COL_NAME).getValue();
       var agentPhone = sheet.getRange(rowIdx, COL_PHONE).getValue();
       var agentEmail = sheet.getRange(rowIdx, COL_EMAIL).getValue();
       
+      // 1. Add to Wednesday Weekly Feedback sheet
       try {
         addToWednesdaySheet(agentName, agentPhone, agentEmail);
       } catch (wedErr) {
         Logger.log('Wednesday sheet error: ' + wedErr.toString());
       }
       
+      // 2. Create all admin calendar reminders
       try {
-        createRealmCalendarTask(agentName);
+        createAdminReminders(agentName, agentEmail);
       } catch (calErr) {
-        Logger.log('Calendar task error: ' + calErr.toString());
+        Logger.log('Calendar reminders error: ' + calErr.toString());
       }
       
     } else if (TASK_MAP['_paperwork_all']) {
@@ -380,32 +390,140 @@ function addToWednesdaySheet(name, phone, email) {
 }
 
 
-// ── Create calendar task for Realm + association email ──────────────────────
-function createRealmCalendarTask(agentName) {
-  // Create an all-day event for tomorrow
+// ── Create all admin calendar reminders when paperwork completes ────────────
+function createAdminReminders(agentName, agentEmail) {
+  var calendar = CalendarApp.getDefaultCalendar();
+  
+  // ── NEXT DAY REMINDERS (9 AM) ──────────────────────────────────────────
   var tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
-  tomorrow.setHours(9, 0, 0, 0); // 9 AM
+  tomorrow.setHours(9, 0, 0, 0);
   
-  var endTime = new Date(tomorrow);
-  endTime.setHours(9, 30, 0, 0); // 9:30 AM
+  var tomorrowEnd = new Date(tomorrow);
+  tomorrowEnd.setHours(9, 30, 0, 0);
   
-  var title = 'Add ' + agentName + ' to Realm and send email with association info';
-  var description = 'New agent ' + agentName + ' has completed all paperwork (ICA, W-9, CC Auth).\n\n'
-    + 'TODO:\n'
-    + '1. Add ' + agentName + ' to REALM\n'
-    + '2. Send email with association info\n\n'
-    + 'Auto-created by Myers Onboarding System';
+  // 1. TREC + Realm + Association
+  var event1 = calendar.createEvent(
+    'Add ' + agentName + ' to Realm and send association info',
+    tomorrow, tomorrowEnd, {
+      description: 'New agent ' + agentName + ' has completed all paperwork (ICA, W-9, CC Auth).\n\n'
+        + 'TODO:\n'
+        + '1. Start TREC license transfer\n'
+        + '2. Add ' + agentName + ' to REALM\n'
+        + '3. Send email with association membership setup info\n\n'
+        + 'Agent email: ' + (agentEmail || 'check sheet') + '\n'
+        + 'Auto-created by Myers Onboarding System'
+    }
+  );
+  event1.addPopupReminder(30);
+  
+  // 2. Create accounts (Gmail, Zoho, Slack)
+  var acctStart = new Date(tomorrow);
+  acctStart.setHours(10, 0, 0, 0);
+  var acctEnd = new Date(tomorrow);
+  acctEnd.setHours(10, 30, 0, 0);
+  
+  var event2 = calendar.createEvent(
+    'Create accounts for ' + agentName + ': Gmail, Zoho, Slack',
+    acctStart, acctEnd, {
+      description: 'CC Auth payment cleared for ' + agentName + '.\n\n'
+        + 'TODO:\n'
+        + '1. Create Gmail account\n'
+        + '2. Create Zoho CRM account\n'
+        + '3. Invite to Slack\n'
+        + '4. Set up drive permissions\n'
+        + '5. Send onboarding email with all login info\n'
+        + '6. Include link to onboarding checklist\n\n'
+        + 'Auto-created by Myers Onboarding System'
+    }
+  );
+  event2.addPopupReminder(30);
+  
+  // 3. Add to group emails
+  var grpStart = new Date(tomorrow);
+  grpStart.setHours(10, 30, 0, 0);
+  var grpEnd = new Date(tomorrow);
+  grpEnd.setHours(11, 0, 0, 0);
+  
+  var event3 = calendar.createEvent(
+    'Add ' + agentName + ' to group emails + team roster',
+    grpStart, grpEnd, {
+      description: 'Add ' + agentName + ' to:\n\n'
+        + '1. all@trelly.com (group email)\n'
+        + '2. sa@myershomebuyers.com (group email)\n'
+        + '3. Team Roster\n\n'
+        + 'This gives them access to shared drives and group communications.\n\n'
+        + 'Agent email: ' + (agentEmail || 'check sheet') + '\n'
+        + 'Auto-created by Myers Onboarding System'
+    }
+  );
+  event3.addPopupReminder(15);
+  
+  // ── 3 DAYS LATER REMINDER ──────────────────────────────────────────────
+  var threeDays = new Date();
+  threeDays.setDate(threeDays.getDate() + 3);
+  threeDays.setHours(10, 0, 0, 0);
+  var threeDaysEnd = new Date(threeDays);
+  threeDaysEnd.setHours(10, 30, 0, 0);
+  
+  var event4 = calendar.createEvent(
+    'Put together welcome post for ' + agentName,
+    threeDays, threeDaysEnd, {
+      description: 'Time to create the welcome announcement for ' + agentName + '.\n\n'
+        + 'TODO:\n'
+        + '1. Prepare welcome post for social media / Fireside Chat\n'
+        + '2. Announce at next team meeting\n\n'
+        + 'Auto-created by Myers Onboarding System'
+    }
+  );
+  event4.addPopupReminder(30);
+  
+  Logger.log('Created 4 admin reminders for: ' + agentName);
+}
+
+
+// ── Add agent birthday as recurring annual event on calendar ────────────────
+function addBirthdayToCalendar(agentName, birthdayStr) {
+  if (!birthdayStr) return;
   
   var calendar = CalendarApp.getDefaultCalendar();
-  var event = calendar.createEvent(title, tomorrow, endTime, {
-    description: description,
-  });
   
-  // Add a popup reminder 30 minutes before
-  event.addPopupReminder(30);
+  // Parse the date string (YYYY-MM-DD from date input)
+  var parts = birthdayStr.split('-');
+  if (parts.length !== 3) return;
   
-  Logger.log('Calendar task created for: ' + agentName + ' on ' + tomorrow.toDateString());
+  var year = parseInt(parts[0]);
+  var month = parseInt(parts[1]) - 1; // JS months are 0-indexed
+  var day = parseInt(parts[2]);
+  
+  // Create the birthday date for this year (or next year if already passed)
+  var now = new Date();
+  var bdayThisYear = new Date(now.getFullYear(), month, day);
+  if (bdayThisYear < now) {
+    bdayThisYear = new Date(now.getFullYear() + 1, month, day);
+  }
+  
+  var title = '🎂 ' + agentName + "'s Birthday";
+  
+  // Check if event already exists (avoid duplicates)
+  var existing = calendar.getEventsForDay(bdayThisYear, { search: agentName + ' Birthday' });
+  if (existing.length > 0) {
+    Logger.log('Birthday event already exists for: ' + agentName);
+    return;
+  }
+  
+  // Create all-day recurring annual event
+  var recurrence = CalendarApp.newRecurrence().addYearlyRule();
+  var event = calendar.createAllDayEventSeries(
+    title,
+    bdayThisYear,
+    recurrence,
+    { description: agentName + "'s birthday — Auto-added by Myers Onboarding System" }
+  );
+  
+  event.addPopupReminder(60 * 24); // Remind 1 day before
+  
+  Logger.log('Birthday calendar event created for: ' + agentName + ' on ' + birthdayStr);
 }
 
 
