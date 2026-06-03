@@ -37,12 +37,12 @@ const COL_LICENSE  = 6;   // F - License #
 const COL_REFER    = 7;   // G - Referring Agent
 const COL_START    = 10;  // J - Start Date Recorded
 
-// Task → column mappings (matching actual sheet headers)
+// Task → column mappings (matching actual sheet headers — Master_Tracker (2))
 const TASK_MAP = {
   '_paperwork_all':      11,  // K  - ICA / W9 / CC Auth
-  'gmail-setup':         15,  // O  - Gmail Activated
-  'zoho-crm':            16,  // P  - Zoho Activated
-  'slack':               17,  // Q  - Slack Activated
+  'gmail-setup':         14,  // N  - Gmail Activated
+  'zoho-crm':            15,  // O  - Zoho Activated
+  'slack':               16,  // P  - Slack Activated
   'first-meeting':       20,  // T  - Add To Team Roster
   'calendars':           22,  // V  - Add to Company Calendar + Showings Calendar
   'welcome-post':        26,  // Z  - Welcome to Myers Post
@@ -54,6 +54,11 @@ const TASK_MAP = {
   'cc-auth':             11,  // K  - same as paperwork column
   'payout-review':       32,  // AF - Payroll
 };
+
+// Birthday and Anniversary columns
+const COL_BIRTHDAY     = 17;  // Q - Birthday (agent enters)
+const COL_BIRTHDAY_CAL = 24;  // X - Birthday Cal (admin checkoff)
+const COL_ANNIVERSARY  = 23;  // W - Anniversary Cal
 
 // Marketing selection columns (after existing columns)
 const COL_WELCOME_TEMPLATE = 33;  // AG - Welcome Template choice
@@ -100,9 +105,9 @@ function doPost(e) {
       if (agent.license) sheet.getRange(rowIdx, COL_LICENSE).setValue(agent.license);
       if (isNew) sheet.getRange(rowIdx, COL_START).setValue(new Date());
       
-      // Birthday (col 24 = X) and Start Date (col 23 = W / Anniversary Cal)
+      // Birthday (col Q=17) and Start Date / Anniversary (col W=23)
       if (agent.birthday) {
-        sheet.getRange(rowIdx, 24).setValue(agent.birthday);
+        sheet.getRange(rowIdx, COL_BIRTHDAY).setValue(agent.birthday);
         // Auto-add birthday as recurring event on your calendar
         try {
           addBirthdayToCalendar(agent.fullName || '', agent.birthday);
@@ -110,7 +115,7 @@ function doPost(e) {
           Logger.log('Birthday calendar error: ' + bdayErr.toString());
         }
       }
-      if (agent.startDate) sheet.getRange(rowIdx, 23).setValue(agent.startDate);
+      if (agent.startDate) sheet.getRange(rowIdx, COL_ANNIVERSARY).setValue(agent.startDate);
       
       // Add headers for new columns if they don't exist yet
       ensureHeaders(sheet);
