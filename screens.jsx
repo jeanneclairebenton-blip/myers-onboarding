@@ -86,20 +86,60 @@ function Wizard({ progress, agent, goTo, toggleTask, openMarketing, updateAgent,
           // Adjusted: if active idx phase is fully done (last step case), still show as active body
           const realStatus = idx === effectiveActiveIdx && activeIdx === -1 ? 'done' : status;
           const open = isExpanded(idx);
+          
+          // Phase group headers
+          let phaseHeader = null;
+          if (idx === 0) {
+            phaseHeader = (
+              <div className="phase-group-header" style={{
+                display: 'flex', alignItems: 'center', gap: 12, margin: '8px 0 16px',
+                padding: '12px 20px', borderRadius: 10,
+                background: 'linear-gradient(135deg, rgba(201,148,31,0.08), rgba(201,148,31,0.03))',
+                border: '1px solid rgba(201,148,31,0.15)',
+              }}>
+                <span style={{ fontSize: 18 }}>📋</span>
+                <div>
+                  <div style={{ fontFamily: 'var(--sans)', fontWeight: 700, fontSize: 13, color: 'var(--gold-deep)', letterSpacing: '.03em', textTransform: 'uppercase' }}>Before Your Start Date</div>
+                  <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 2 }}>Complete these steps as soon as you sign on</div>
+                </div>
+              </div>
+            );
+          }
+          if (idx === 4) {
+            phaseHeader = (
+              <>
+                <div style={{
+                  display: 'flex', alignItems: 'center', gap: 12, margin: '32px 0 8px',
+                  padding: '14px 20px', borderRadius: 10,
+                  background: 'linear-gradient(135deg, rgba(46,92,138,0.08), rgba(46,92,138,0.03))',
+                  border: '1px solid rgba(46,92,138,0.15)',
+                }}>
+                  <span style={{ fontSize: 18 }}>🚀</span>
+                  <div>
+                    <div style={{ fontFamily: 'var(--sans)', fontWeight: 700, fontSize: 13, color: '#2E5C8A', letterSpacing: '.03em', textTransform: 'uppercase' }}>Day One — Account Setup & Beyond</div>
+                    <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 2 }}>You'll receive your login credentials to get started</div>
+                  </div>
+                </div>
+              </>
+            );
+          }
+          
           return (
-            <WizardStep
-              key={phase.id}
-              phase={phase}
-              idx={idx}
-              status={realStatus}
-              open={open}
-              onToggle={() => toggleExpand(idx)}
-              progress={progress}
-              toggleTask={toggleTask}
-              openMarketing={openMarketing}
-              agent={agent}
-              updateAgent={updateAgent}
-            />
+            <React.Fragment key={phase.id}>
+              {phaseHeader}
+              <WizardStep
+                phase={phase}
+                idx={idx}
+                status={realStatus}
+                open={open}
+                onToggle={() => toggleExpand(idx)}
+                progress={progress}
+                toggleTask={toggleTask}
+                openMarketing={openMarketing}
+                agent={agent}
+                updateAgent={updateAgent}
+              />
+            </React.Fragment>
           );
         })}
 
