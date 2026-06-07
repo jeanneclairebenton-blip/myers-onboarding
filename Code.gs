@@ -27,61 +27,58 @@ const WED_COL_STATUS     = 5;   // E - Status
 // Admin email — receives a report every time an agent submits
 const ADMIN_EMAIL = 'jbenton@myershomebuyers.com';
 
-// Agent info columns (matching actual sheet)
+// Agent info columns (matching reorganized Master_Tracker (2))
 const COL_NAME     = 1;   // A - Name
-const COL_TITLE    = 2;   // B - Title
-const COL_PHONE    = 3;   // C - Phone Number
-const COL_EMAIL    = 4;   // D - Email
-const COL_NOTES    = 5;   // E - Notes
-const COL_LICENSE  = 6;   // F - License #
-const COL_REFER    = 7;   // G - Referring Agent
-const COL_START    = 10;  // J - Start Date Recorded
+const COL_NOTES    = 2;   // B - Notes
+const COL_REFER    = 3;   // C - Referring Agent
+const COL_TITLE    = 8;   // H - Title
+const COL_PHONE    = 9;   // I - Phone Number
+const COL_EMAIL    = 10;  // J - Email
+const COL_LICENSE  = 11;  // K - License #
+const COL_START    = 13;  // M - Start Date
 
-// Task → column mappings (matching actual sheet headers — Master_Tracker (2))
+// Task → column mappings (matching Master_Tracker (2) exactly)
 const TASK_MAP = {
-  // Existing columns
-  '_paperwork_all':      11,  // K  - ICA / W9 / CC Auth
-  'gmail-setup':         14,  // N  - Gmail Activated
-  'zoho-crm':            15,  // O  - Zoho Activated
-  'slack':               16,  // P  - Slack Activated
-  'first-meeting':       20,  // T  - Add To Team Roster
-  'welcome-post':        26,  // Z  - Welcome to Myers Post
-  'deal-walkthrough':    27,  // AA - Zoho: Deals & MVP
-  'deal-walkthrough-2':  28,  // AB - Zoho + Gmail Integration
-  'slack_resources':     29,  // AC - Slack Resources + Add to Group
-  'cards':               31,  // AE - Marketing SetUp: Business Cards + Flyers
-  'cc-auth':             11,  // K  - same as paperwork column
-  'payout-review':       32,  // AF - Payroll
+  // Pre-onboarding (agent + admin)
+  '_paperwork_all':      5,   // E  - ICA / W9 / CC Auth
+  'cc-auth':             5,   // E  - same as paperwork column
+  'trec-transfer':       14,  // N  - TREC Transfer
+  'mls-access':          15,  // O  - Association / MLS
+  'disc-score':          16,  // P  - DISC Score
+  'disc-review':         16,  // P  - DISC Score (same column)
   
-  // New columns (AJ-AW) — all agent checklist tasks
-  'trec-transfer':       36,  // AJ - TREC License Transfer
-  'mls-access':          37,  // AK - Association / MetroTex / MLS
-  'supra-access':        38,  // AL - Supra Key Access
-  'calendars':           39,  // AM - Joined Shared Calendars
-  'shared-drives':       40,  // AN - Joined Shared Drives
-  'zip-forms':           41,  // AO - Zip Forms Activated
-  'forewarn':            42,  // AP - ForeWarn Activated
-  'brand-guidelines':    43,  // AQ - Brand Guidelines Reviewed
-  'email-sig':           44,  // AR - Email Signature Setup
-  'website':             45,  // AS - Carrot Website Requested
-  'social-kit':          46,  // AT - Social Brand Kit
-  'normal-payout':       47,  // AU - Normal Payout Reviewed
-  'expedited-payout':    48,  // AV - Expedited Payout Reviewed
-  'revshare-payout':     49,  // AW - Rev Share Reviewed
-  'disc-review':         50,  // AX - DISC Review Scheduled
+  // Day One — account setup (agent completes)
+  'gmail-setup':         21,  // U  - Gmail Activated
+  'calendars':           22,  // V  - Joined Shared Calendars
+  'shared-drives':       23,  // W  - Joined Shared Drives
+  'slack':               24,  // X  - Slack Activated
+  'zoho-crm':            25,  // Y  - Zoho Activated
+  'zip-forms':           26,  // Z  - Zip Forms
+  'forewarn':            27,  // AA - ForeWarn
+  
+  // Marketing & Brand
+  'brand-guidelines':    28,  // AB - Brand Guidelines & Logos
+  'welcome-post':        29,  // AC - Welcome Announcement Template
+  'email-sig':           30,  // AD - Email Signature
+  'cards':               31,  // AE - Business Cards Selected
+  'website':             32,  // AF - Carrot Website Requested
+  'social-kit':          33,  // AG - Social Brand Kit
+  
+  // Payout
+  'payout-review':       36,  // AJ - Payroll
 };
 
 // Birthday and Anniversary columns
-const COL_BIRTHDAY     = 17;  // Q - Birthday (agent enters)
-const COL_BIRTHDAY_CAL = 24;  // X - Birthday Cal (admin checkoff)
-const COL_ANNIVERSARY  = 23;  // W - Anniversary Cal
+const COL_BIRTHDAY     = 12;  // L - Birthday
+const COL_BIRTHDAY_CAL = 20;  // T - Birthday Cal
+const COL_ANNIVERSARY  = 19;  // S - Anniversary Cal
 
-// Marketing selection columns (after existing columns)
-const COL_WELCOME_TEMPLATE = 33;  // AG - Welcome Template choice
-const COL_CARD_STYLE       = 34;  // AH - Business Card style
-const COL_DRIVE_FOLDER     = 35;  // AI - Drive folder link
+// Marketing selection columns
+const COL_WELCOME_TEMPLATE = 37;  // AK - Welcome Template choice
+const COL_CARD_STYLE       = 38;  // AL - Card Style
+const COL_DRIVE_FOLDER     = 39;  // AM - Drive folder link (next available)
 
-// Paperwork task IDs (all 3 needed to mark column K)
+// Paperwork task IDs (all 3 needed to mark column E)
 const PAPERWORK_IDS = ['sponsorship', 'w9', 'cc-auth'];
 
 // Drive folder name for agent folders
