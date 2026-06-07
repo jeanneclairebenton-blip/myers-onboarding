@@ -45,7 +45,7 @@ window.MYERS_DATA = {
       num: '04',
       title: 'DISC Assessment',
       subtitle: 'Understand your strengths',
-      description: 'The DISC assessment measures four key personality traits — Dominance, Influence, Steadiness, and Conscientiousness. Understanding your DISC profile helps us communicate with you more effectively, play to your strengths, and set you up for success. After completing the assessment, schedule a brief review session so we can walk through your results together.',
+      description: 'Understanding your DISC profile helps us communicate with you more effectively, play to your strengths, and set you up for success! After completing the assessment, schedule a brief review session so we can walk through your results together!',
       tasks: [
         { id: 'disc-score', title: 'Take the DISC Assessment', desc: 'Complete the personality assessment through Wizehire. It takes about 10–15 minutes. Answer honestly — there are no right or wrong answers. Your results help us understand how you prefer to communicate, make decisions, and work within a team.', icon: 'sparkle', accent: '#6B4E8E',
           links: [{ label: 'Start Assessment', href: 'https://wizehire.com/team/assessment/myers-home-buyers-1' }] },
