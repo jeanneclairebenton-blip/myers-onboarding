@@ -68,6 +68,7 @@ const TASK_MAP = {
   'normal-payout':       47,  // AU - Normal Payout Reviewed
   'expedited-payout':    48,  // AV - Expedited Payout Reviewed
   'revshare-payout':     49,  // AW - Rev Share Reviewed
+  'disc-review':         50,  // AX - DISC Review Scheduled
 };
 
 // Birthday and Anniversary columns

@@ -10,8 +10,6 @@ window.MYERS_DATA = {
       isProfile: true,
       tasks: [
         { id: 'profile-done', title: 'Confirm profile', desc: 'Review and confirm your name, title, photo, and contact info.', icon: 'badge' },
-        { id: 'disc-score', title: 'DISC Assessment', desc: 'Complete your DISC personality assessment through Wizehire. This helps us understand your communication and working style.', icon: 'sparkle', optional: true,
-          links: [{ label: 'Start Exam', href: 'https://wizehire.com/team/assessment/myers-home-buyers-1' }] },
       ],
     },
     {
@@ -43,8 +41,21 @@ window.MYERS_DATA = {
       ],
     },
     {
-      id: 'comms',
+      id: 'disc',
       num: '04',
+      title: 'DISC Assessment',
+      subtitle: 'Understand your strengths',
+      description: 'The DISC assessment measures four key personality traits — Dominance, Influence, Steadiness, and Conscientiousness. Understanding your DISC profile helps us communicate with you more effectively, play to your strengths, and set you up for success. After completing the assessment, schedule a brief review session so we can walk through your results together.',
+      tasks: [
+        { id: 'disc-score', title: 'Take the DISC Assessment', desc: 'Complete the personality assessment through Wizehire. It takes about 10–15 minutes. Answer honestly — there are no right or wrong answers. Your results help us understand how you prefer to communicate, make decisions, and work within a team.', icon: 'sparkle', accent: '#6B4E8E',
+          links: [{ label: 'Start Assessment', href: 'https://wizehire.com/team/assessment/myers-home-buyers-1' }] },
+        { id: 'disc-review', title: 'Schedule DISC Review', desc: 'Once you\'ve completed the assessment, book a 15-minute session with Jeanne to go over your results and discuss how they apply to your role.', icon: 'calendar', accent: '#2E5C8A',
+          links: [{ label: 'Book Review Session', href: 'https://calendar.google.com/calendar/appointments' }] },
+      ],
+    },
+    {
+      id: 'comms',
+      num: '05',
       title: 'Email, Drives & Calendars',
       subtitle: 'Get connected',
       description: 'Set up your email, shared drives, calendars, and team communication so you never miss a beat.',
@@ -60,7 +71,7 @@ window.MYERS_DATA = {
     },
     {
       id: 'tools',
-      num: '05',
+      num: '06',
       title: 'Tools & Safety',
       subtitle: 'Get your systems running',
       description: 'Set up your CRM, contracts, and safety tools so you can start working deals immediately.',
@@ -75,7 +86,7 @@ window.MYERS_DATA = {
     },
     {
       id: 'brand',
-      num: '06',
+      num: '07',
       title: 'Marketing & Brand',
       subtitle: 'Build your presence',
       description: 'Launch your professional brand. Create your announcement post, set up your email signature, order business cards, and get your website live.',
@@ -93,7 +104,7 @@ window.MYERS_DATA = {
     },
     {
       id: 'closing',
-      num: '07',
+      num: '08',
       title: 'Payout Process',
       subtitle: 'How you get paid',
       description: 'Review the commission payout schedules, funding deadlines, and expedited payout options.',
