@@ -578,6 +578,8 @@ function sendEmailReport(agent, allProgress, marketing) {
     { id: 'expedited-payout', label: 'Expedited Payout Policy Reviewed' },
     { id: 'revshare-payout', label: 'Rev Share Policy Reviewed' },
     { id: 'payout-review', label: 'Payout Policies Acknowledged' },
+    { id: 'disc-score', label: 'DISC Assessment Completed' },
+    { id: 'disc-review', label: 'DISC Review Session Booked' },
   ];
   
   var completedHtml = '';

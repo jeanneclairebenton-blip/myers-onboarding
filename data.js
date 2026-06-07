@@ -49,8 +49,8 @@ window.MYERS_DATA = {
       tasks: [
         { id: 'disc-score', title: 'Take the DISC Assessment', desc: 'Complete the personality assessment through Wizehire. It takes about 10–15 minutes. Answer honestly — there are no right or wrong answers. Your results help us understand how you prefer to communicate, make decisions, and work within a team.', icon: 'sparkle', accent: '#6B4E8E',
           links: [{ label: 'Start Assessment', href: 'https://wizehire.com/team/assessment/myers-home-buyers-1' }] },
-        { id: 'disc-review', title: 'Schedule DISC Review', desc: 'Once you\'ve completed the assessment, book a 15-minute session with Jeanne to go over your results and discuss how they apply to your role.', icon: 'calendar', accent: '#2E5C8A',
-          links: [{ label: 'Book Review Session', href: 'https://calendar.google.com/calendar/appointments' }] },
+        { id: 'disc-review', title: 'Request Your Results + Book a Review Session', desc: 'Once you\'ve completed the assessment, request your results and book a 15-minute session with Jeanne to go over them and discuss how they apply to your role.', icon: 'calendar', accent: '#2E5C8A',
+          links: [{ label: 'Request Your Results + Book a Review Session', href: 'https://calendar.app.google/eSp3q8T6i3bt2oe37' }] },
       ],
     },
     {
