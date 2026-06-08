@@ -285,7 +285,9 @@ function markTask(sheet, rowIdx, taskId, completed, allProgress) {
   if (PAPERWORK_IDS.indexOf(taskId) !== -1) {
     var allPaperwork = PAPERWORK_IDS.every(function(id) { return allProgress[id]; });
     if (allPaperwork && TASK_MAP['_paperwork_all']) {
-      sheet.getRange(rowIdx, TASK_MAP['_paperwork_all']).setValue(true);
+      var pwCell = sheet.getRange(rowIdx, TASK_MAP['_paperwork_all']);
+      pwCell.setValue(true);
+      markCellGreen(pwCell);
       
       // ── All paperwork done → trigger all admin tasks ──
       var agentName = sheet.getRange(rowIdx, COL_NAME).getValue();
@@ -321,16 +323,30 @@ function markTask(sheet, rowIdx, taskId, completed, allProgress) {
   
   // Direct task mapping
   if (TASK_MAP[taskId]) {
-    sheet.getRange(rowIdx, TASK_MAP[taskId]).setValue(mark);
+    var cell = sheet.getRange(rowIdx, TASK_MAP[taskId]);
+    cell.setValue(mark);
+    if (completed) markCellGreen(cell);
   }
   
   // Tasks that map to multiple columns
   if (taskId === 'slack' && TASK_MAP['slack_resources']) {
-    sheet.getRange(rowIdx, TASK_MAP['slack_resources']).setValue(mark);
+    var cell2 = sheet.getRange(rowIdx, TASK_MAP['slack_resources']);
+    cell2.setValue(mark);
+    if (completed) markCellGreen(cell2);
   }
   if (taskId === 'deal-walkthrough' && TASK_MAP['deal-walkthrough-2']) {
-    sheet.getRange(rowIdx, TASK_MAP['deal-walkthrough-2']).setValue(mark);
+    var cell3 = sheet.getRange(rowIdx, TASK_MAP['deal-walkthrough-2']);
+    cell3.setValue(mark);
+    if (completed) markCellGreen(cell3);
   }
+}
+
+// ── Style a cell green when completed ───────────────────────────────────────
+function markCellGreen(cell) {
+  cell.setBackground('#d9ead3');
+  cell.setFontColor('#1e6e23');
+  cell.setFontWeight('bold');
+  cell.setHorizontalAlignment('center');
 }
 
 
