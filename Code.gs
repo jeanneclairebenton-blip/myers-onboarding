@@ -279,13 +279,13 @@ function saveBase64File(folder, base64Data, fileName, prefix) {
 
 // ── Mark a task in the sheet ────────────────────────────────────────────────
 function markTask(sheet, rowIdx, taskId, completed, allProgress) {
-  var mark = completed ? '✓' : '';
+  var mark = completed ? true : '';
   
   // Handle paperwork tasks specially (column K needs all 3)
   if (PAPERWORK_IDS.indexOf(taskId) !== -1) {
     var allPaperwork = PAPERWORK_IDS.every(function(id) { return allProgress[id]; });
     if (allPaperwork && TASK_MAP['_paperwork_all']) {
-      sheet.getRange(rowIdx, TASK_MAP['_paperwork_all']).setValue('✓');
+      sheet.getRange(rowIdx, TASK_MAP['_paperwork_all']).setValue(true);
       
       // ── All paperwork done → trigger all admin tasks ──
       var agentName = sheet.getRange(rowIdx, COL_NAME).getValue();
