@@ -43,7 +43,7 @@ const STORAGE_KEY = 'myers-onboarding-v2';
 // ── Google Sheets Sync ──────────────────────────────────────────────────────
 // Replace this URL with your deployed Apps Script web app URL.
 // See SETUP_INSTRUCTIONS.md for step-by-step guide.
-const SHEET_URL = 'https://script.google.com/macros/s/AKfycbwO9f4yETJaJuMriyDYv6Ts_NNJa0BUtaY2uDs1fP-UtRj4md18LtC32k505eWzb2-N3A/exec';
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbxqOvuVP9z0B1sPthamhLkH9jIeEBj0QIM3YrdQMVhosD-jMkHpIe7AHaXtnAMkYIPrTQ/exec';
 
 // Track which syncs are in-flight to avoid duplicates
 const _syncQueue = {};
