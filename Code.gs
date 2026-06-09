@@ -372,6 +372,7 @@ function findRowByEmail(sheet, emailCol, startRow, email) {
   var lastRow = sheet.getLastRow();
   if (lastRow < startRow) return -1;
   
+  // Search primary email column (C)
   var range = sheet.getRange(startRow, emailCol, lastRow - startRow + 1, 1);
   var values = range.getValues();
   
@@ -380,6 +381,18 @@ function findRowByEmail(sheet, emailCol, startRow, email) {
       return startRow + i;
     }
   }
+  
+  // Also search secondary email column (L=12) in case email was stored there
+  if (emailCol !== COL_EMAIL2) {
+    var range2 = sheet.getRange(startRow, COL_EMAIL2, lastRow - startRow + 1, 1);
+    var values2 = range2.getValues();
+    for (var j = 0; j < values2.length; j++) {
+      if (values2[j][0] && values2[j][0].toString().trim().toLowerCase() === email) {
+        return startRow + j;
+      }
+    }
+  }
+  
   return -1;
 }
 
