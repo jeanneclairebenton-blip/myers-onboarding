@@ -27,58 +27,59 @@ const WED_COL_STATUS     = 5;   // E - Status
 // Admin email — receives a report every time an agent submits
 const ADMIN_EMAIL = 'jbenton@myershomebuyers.com';
 
-// Agent info columns (matching Master_Tracker (2) — headers in row 3)
+// Agent info columns (matching Master_Tracker (3) — headers in row 3)
 const COL_NAME     = 1;   // A - Name
 const COL_NOTES    = 2;   // B - Notes
-const COL_REFER    = 3;   // C - Referring Agent
-const COL_TITLE    = 9;   // I - Title
-const COL_PHONE    = 10;  // J - Phone Number
-const COL_EMAIL    = 11;  // K - Email
-const COL_LICENSE  = 12;  // L - License #
-const COL_START    = 14;  // N - Start Date
+const COL_EMAIL    = 3;   // C - Email (primary)
+const COL_REFER    = 4;   // D - Referring Agent
+const COL_TITLE    = 10;  // J - Title
+const COL_PHONE    = 11;  // K - Phone Number
+const COL_EMAIL2   = 12;  // L - Email (secondary)
+const COL_LICENSE  = 13;  // M - License #
+const COL_START    = 15;  // O - Start Date
 
-// Task → column mappings (matching Master_Tracker (2) — row 3 headers)
+// Task → column mappings (matching Master_Tracker (3) — row 3 headers)
 const TASK_MAP = {
   // Pre-onboarding
-  '_paperwork_all':      5,   // E  - ICA / W9 / CC Auth
-  'cc-auth':             5,   // E  - same as paperwork column
-  'trec-transfer':       15,  // O  - TREC Transfer
-  'mls-access':          16,  // P  - Association / MLS
-  'disc-score':          17,  // Q  - DISC Score
-  'disc-review':         17,  // Q  - DISC Score (same column)
+  '_paperwork_all':      6,   // F  - ICA / W9 / CC Auth
+  'cc-auth':             6,   // F  - same as paperwork column
+  'trec-transfer':       16,  // P  - TREC Transfer
+  'mls-access':          17,  // Q  - Association / MLS
+  'disc-score':          18,  // R  - DISC Score
+  'disc-review':         18,  // R  - DISC Score (same column)
   
   // Day One — account setup
-  'gmail-setup':         22,  // V  - Gmail Activated
-  'calendars':           23,  // W  - Joined Shared Calendars
-  'shared-drives':       24,  // X  - Joined Shared Drives
-  'slack':               25,  // Y  - Slack Activated
-  'zoho-crm':            26,  // Z  - Zoho Activated
-  'zip-forms':           27,  // AA - Zip Forms
-  'forewarn':            28,  // AB - ForeWarn
+  'gmail-setup':         23,  // W  - Gmail Activated
+  'calendars':           24,  // X  - Joined Shared Calendars
+  'shared-drives':       25,  // Y  - Joined Shared Drives
+  'slack':               26,  // Z  - Slack Activated
+  'zoho-crm':            27,  // AA - Zoho Activated
+  'zip-forms':           28,  // AB - Zip Forms
+  'forewarn':            29,  // AC - ForeWarn
   
   // Marketing & Brand
-  'brand-guidelines':    29,  // AC - Brand Guidelines & Logos
-  'welcome-post':        30,  // AD - Welcome Announcement Template
-  'email-sig':           31,  // AE - Email Signature
-  'cards':               32,  // AF - Business Cards Selected
-  'website':             33,  // AG - Carrot Website Requested
-  'social-kit':          34,  // AH - Social Brand Kit
+  'brand-guidelines':    30,  // AD - Brand Guidelines & Logos
+  'welcome-post':        31,  // AE - Welcome Announcement Template
+  'email-sig':           32,  // AF - Email Signature
+  'cards':               33,  // AG - Business Cards Selected
+  'website':             34,  // AH - Carrot Website Requested
+  'social-kit':          35,  // AI - Social Brand Kit
   
   // Payout
-  'payout-review':       6,   // F  - Put on Payroll
+  'payout-review':       7,   // G  - Put on Payroll
 };
 
 // Birthday and Anniversary columns
-const COL_BIRTHDAY     = 13;  // M - Birthday
-const COL_BIRTHDAY_CAL = 21;  // U - Birthday Cal
-const COL_ANNIVERSARY  = 20;  // T - Anniversary Cal
+const COL_BIRTHDAY     = 14;  // N - Birthday
+const COL_BIRTHDAY_CAL = 22;  // V - Birthday Cal
+const COL_ANNIVERSARY  = 21;  // U - Anniversary Cal
 
 // Marketing selection columns
-const COL_WELCOME_TEMPLATE = 30;  // AD - Welcome Announcement Template
-const COL_CARD_STYLE       = 32;  // AF - Business Cards Selected
-const COL_DRIVE_FOLDER     = 35;  // AI - Agent Drive Folder
+const COL_WELCOME_TEMPLATE = 31;  // AE - Welcome Announcement Template
+const COL_CARD_STYLE       = 33;  // AG - Business Cards Selected
+const COL_DRIVE_FOLDER     = 36;  // AJ - Agent Drive Folder
 
-// Paperwork task IDs (all 3 needed to mark column E)
+// Paperwork task IDs (all 3 needed to mark column F)
 const PAPERWORK_IDS = ['sponsorship', 'w9', 'cc-auth'];
 
 // Drive folder name for agent folders
@@ -109,18 +110,34 @@ function doPost(e) {
       rowIdx = findNextEmptyRow(sheet, COL_NAME, ONBOARD_DATA_ROW);
     }
     
-    // ── Fill agent info ──────────────────────────────────────────────────
+    // ── Fill agent info (all cells forced to PLAIN TEXT) ─────────────────
     if (syncType === 'profile' || syncType === 'full' || isNew) {
-      sheet.getRange(rowIdx, COL_NAME).setValue(agent.fullName || '');
-      sheet.getRange(rowIdx, COL_PHONE).setValue(agent.phone || '');
-      sheet.getRange(rowIdx, COL_EMAIL).setValue(agent.email || '');
-      if (agent.title) sheet.getRange(rowIdx, COL_TITLE).setValue(agent.title);
-      if (agent.license) sheet.getRange(rowIdx, COL_LICENSE).setValue(agent.license);
-      if (isNew) sheet.getRange(rowIdx, COL_START).setValue(new Date());
+      var nameCell = sheet.getRange(rowIdx, COL_NAME);
+      nameCell.setNumberFormat('@').setValue(agent.fullName || '');
       
-      // Birthday (col Q=17) and Start Date / Anniversary (col W=23)
+      var phoneCell = sheet.getRange(rowIdx, COL_PHONE);
+      phoneCell.setNumberFormat('@').setValue(String(agent.phone || ''));
+      
+      var emailCell = sheet.getRange(rowIdx, COL_EMAIL);
+      emailCell.setNumberFormat('@').setValue(agent.email || '');
+      
+      // Also write email to secondary email column (L)
+      var email2Cell = sheet.getRange(rowIdx, COL_EMAIL2);
+      email2Cell.setNumberFormat('@').setValue(agent.email || '');
+      
+      if (agent.title) {
+        sheet.getRange(rowIdx, COL_TITLE).setNumberFormat('@').setValue(String(agent.title));
+      }
+      if (agent.license) {
+        sheet.getRange(rowIdx, COL_LICENSE).setNumberFormat('@').setValue(String(agent.license));
+      }
+      if (isNew) {
+        sheet.getRange(rowIdx, COL_START).setNumberFormat('@').setValue(new Date().toISOString().split('T')[0]);
+      }
+      
+      // Birthday and Start Date — store as plain text YYYY-MM-DD
       if (agent.birthday) {
-        sheet.getRange(rowIdx, COL_BIRTHDAY).setValue(agent.birthday);
+        sheet.getRange(rowIdx, COL_BIRTHDAY).setNumberFormat('@').setValue(String(agent.birthday));
         // Auto-add birthday as recurring event on your calendar
         try {
           addBirthdayToCalendar(agent.fullName || '', agent.birthday);
@@ -128,7 +145,7 @@ function doPost(e) {
           Logger.log('Birthday calendar error: ' + bdayErr.toString());
         }
       }
-      if (agent.startDate) sheet.getRange(rowIdx, COL_ANNIVERSARY).setValue(agent.startDate);
+      if (agent.startDate) sheet.getRange(rowIdx, COL_ANNIVERSARY).setNumberFormat('@').setValue(String(agent.startDate));
       
       // Add headers for new columns if they don't exist yet
       ensureHeaders(sheet);
